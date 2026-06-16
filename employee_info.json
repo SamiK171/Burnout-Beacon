@@ -1,0 +1,96 @@
+{
+  "employees": [
+    {
+      "employee_id": "E1001",
+      "name": "Jim Halpert",
+      "role": "Sales Representative",
+
+      "timeline": {
+        "2026-05-23": {
+          "mood": 7,
+          "tasks": [
+            {
+              "task_id": "T1",
+              "name": "Client Outreach",
+              "difficulty": 6,
+              "weight": 9,
+              "completed": true
+            },
+            {
+              "task_id": "T2",
+              "name": "Sales Report",
+              "difficulty": 7,
+              "weight": 6,
+              "completed": true
+            }
+          ]
+        },
+
+        "2026-05-24": {
+          "mood": 4,
+          "tasks": [
+            {
+              "task_id": "T1",
+              "name": "Client Outreach",
+              "difficulty": 6,
+              "weight": 8,
+              "completed": true
+            },
+            {
+              "task_id": "T2",
+              "name": "Sales Report",
+              "difficulty": 7,
+              "weight": 4,
+              "completed": false
+            }
+          ]
+        },
+
+        "2026-05-25": {
+          "mood": 6,
+          "tasks": [
+            {
+              "task_id": "T1",
+              "name": "Client Outreach",
+              "difficulty": 6,
+              "weight": 3,
+              "completed": true
+            },
+            {
+              "task_id": "T2",
+              "name": "Sales Report",
+              "difficulty": 7,
+              "weight": 5,
+              "completed": true
+            }
+          ]
+        },
+
+        "2026-05-26": {
+          "mood": 3,
+          "tasks": [
+            {
+              "task_id": "T1",
+              "name": "Client Outreach",
+              "difficulty": 6,
+              "weight": 8,
+              "completed": false
+            },
+            {
+              "task_id": "T2",
+              "name": "Lead Follow-ups",
+              "difficulty": 8,
+              "weight": 4,
+              "completed": true
+            }
+          ]
+        }
+      }
+    },
+    {
+      "employee_id": "E1002",
+      "name": "Dwight Schrute",
+      "role": "Assistant Regional Manager"
+    }
+  ]
+}
