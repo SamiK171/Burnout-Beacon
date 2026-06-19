@@ -40,12 +40,35 @@ class Employee:
         """Get the daily tasks of an employee."""
         return self._tasks
 
+    def get_specific_mood(self, d: str) -> int | None:
+        """Returns the mood of an employee on a specific date <d>"""
+        if d in self._moods:
+            return self._moods[d]
+        else:
+            return None # could be an exception later
+
+    def get_specific_task(self, d: str, name: str) -> Task | None:
+        """Returns the task of an employee on a specific date <d>"""
+        if d in self._tasks:
+            for task in self._tasks[d]:
+                if task.name == name:
+                    return task
+        else:
+            return None # could be an exception later
+
     def rate_mood(self, mood_val: int) -> None:
         """Rate mood for the day which is <mood_val>.
 
         Precondition: 1 <= <mood_val> <= 10
         """
-        pass
+        curr = str(date.today())
+        if 1 <= mood_val <= 10:
+            if curr in self._moods or curr not in self._tasks:
+                ... # RAISE Error or handle here. TBD.
+            else:
+                self._moods[curr] = mood_val
+        else:
+            ... # raise some error/exception perhaps.
 
     def complete_task(self, t: Task) -> None:
         """Complete a task <t>."""
@@ -89,11 +112,11 @@ class Manager(Employee):
     - role = 'Manager'
     """
     name: str
-    manager_id: int
+    manager_id: str
     _moods: dict[date, int]
     _tasks: dict[date, dict[str, Task]]
 
-    def __init__(self, name: str, manager_id: int) -> None:
+    def __init__(self, name: str, manager_id: str) -> None:
         """Instantiate a manager with given <name> and <manager_id>.
 
         Note: ONLY the Manager can do this.
@@ -101,9 +124,15 @@ class Manager(Employee):
         super().__init__(name, 'Manager', manager_id)
         pass
 
-    def add_task(self, t: Task, e: Employee) -> None:
+    def add_task(self, t: Task, e: Employee, d: str) -> None:
         """Add a task <t> for the employee <e>. """
-        pass
+        e_tasks = e.get_tasks()
+        for dates in e_tasks:
+            for task in e_tasks[dates]:
+                if task.name == t.name: # if the task already exists
+                    return None # raise some error here later & finish method
+        e_tasks.setdefault(d, []).append(t) # otherwise add the task
+
 
     def remove_task(self, t: Task, e: Employee) -> None:
         """Remove a task <t> for the employee <e>."""
@@ -112,3 +141,7 @@ class Manager(Employee):
     def change_task(self, t: Task, e: Employee) -> None:
         """Change a task <t> for the employee <e>."""
         pass
+
+if __name__ == '__main__':
+    x = str(date.today())
+    print(x == '2026-06-18')
