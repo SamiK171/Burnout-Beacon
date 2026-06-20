@@ -33,6 +33,14 @@ class Task:
         self._difficulty = difficulty
         self._date = t_date
 
+    def get_name(self) -> str:
+        """Get the name of the task."""
+        return self.name
+
+    def set_name(self, name: str) -> None:
+        """Set the name of the task to <name>."""
+        self.name = name
+
     def get_weight(self) -> int:
         """Get the weight of the task."""
         return self._weight
@@ -59,9 +67,9 @@ class Task:
         """Get the date of the task."""
         return self._date
 
-    def set_date(self, d: date) -> None:
+    def set_date(self, d: str) -> None:
         """Set the date of the task to <d>."""
-        pass
+        self._date = d
 
     def __str__(self) -> str:
         """String representation of the Task."""

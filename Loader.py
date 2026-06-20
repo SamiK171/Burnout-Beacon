@@ -29,14 +29,28 @@ class Loader:
             # Set Up Mood and Tasks Attributes:
             if "timeline" in employees:
                 for mood_task_date in employees['timeline']:
-                    employee_obj.set_moods(mood_task_date, employees['timeline'][mood_task_date]['mood'])
+                    #employee_obj.set_moods(mood_task_date, employees['timeline'][mood_task_date]['mood'])
+                    self.set_moods(mood_task_date, employees['timeline'][mood_task_date]['mood'], employee_obj)
                     for task in employees['timeline'][mood_task_date]['tasks']:
                         task_obj = Task(task['name'], task['weight'], task['difficulty'],
                                         mood_task_date)
-                        employee_obj.set_tasks(mood_task_date, task_obj)
+                        #employee_obj.set_tasks(mood_task_date, task_obj)
+                        self.set_tasks(mood_task_date, task_obj, employee_obj)
 
             #s.add_employee(employee_obj)
             storage[emp_id] = employee_obj
+
+    def set_moods(self, str_date: str, mood_val: int, e: Employee) -> None:
+        """Build the _moods attribute for an employee based on pre-existing
+        JSON file info."""
+        moods = e.get_moods()
+        moods[str_date] = mood_val
+
+    def set_tasks(self, str_date: str, task: Task, e: Employee) -> None:
+        """ Build the _tasks attribute for an employee based on pre-existing
+        JSON file info."""
+        tasks = e.get_tasks()
+        tasks.setdefault(str_date, []).append(task)
 
     def build_task(self) -> Task:
         """Builds a task object from the JSON file."""

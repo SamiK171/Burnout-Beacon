@@ -74,22 +74,6 @@ class Employee:
         """Complete a task <t>."""
         t.completed = True
 
-    def set_moods(self, str_date: str, mood_val: int) -> None:
-        """Used by the Loader, this safely allows for access to
-        _moods while maintaining proper information hiding.
-        This is for building the _moods attribute based on
-        pre-existing JSON file info.
-        """
-        self._moods[str_date] = mood_val
-
-    def set_tasks(self, str_date: str, task: Task) -> None:
-        """Used by the Loader, this safely allows for access to
-        _tasks while maintaining proper information hiding.
-        This is for building the _tasks attribute based on
-        pre-existing JSON file info.
-        """
-        self._tasks.setdefault(str_date, []).append(task)
-
     def __str__(self):
         """String representation of the Employee."""
         return f"Employee: {self.name}, {self.role}, {self.employee_id} "
@@ -134,13 +118,31 @@ class Manager(Employee):
         e_tasks.setdefault(d, []).append(t) # otherwise add the task
 
 
-    def remove_task(self, t: Task, e: Employee) -> None:
-        """Remove a task <t> for the employee <e>."""
-        pass
+    def remove_task(self, task_name: str, e: Employee, task_date: str) -> None:
+        """Remove a task for the employee <e> by its <task_name>."""
+        e_tasks = e.get_tasks()
+        for dates in e_tasks:
+            if dates == task_date:
+                for task in e_tasks[dates]:
+                    if task.name == task_name:
+                        e_tasks[dates].remove(task)
 
-    def change_task(self, t: Task, e: Employee) -> None:
+    def change_task(self, task_name: str, e: Employee,
+                    task_date: str, name=None, weight=None, difficulty=None) -> None:
         """Change a task <t> for the employee <e>."""
-        pass
+        # ROUGH IMPLEMENTATION (the case where date is changed has not been covered yet)
+        e_tasks = e.get_tasks()
+        for dates in e_tasks:
+            if dates == task_date:
+                for task in e_tasks[dates]:
+                    if task.name == task_name:
+                        if name is not None:
+                            task.set_name(name)
+                        if weight is not None:
+                            task.set_weight(weight)
+                        if difficulty is not None:
+                            task.set_difficulty(difficulty)
+
 
 if __name__ == '__main__':
     x = str(date.today())

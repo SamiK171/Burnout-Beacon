@@ -11,7 +11,7 @@ class Storage:
     """
     def __init__(self):
         """Initialize the storage system."""
-        l = Loader('employee_info.json')
+        l = Loader('employee_info.json') # <- TEMPORARILY HARDCODED
         self._employee_storage = {}
         l.build_employees(self._employee_storage)
 

@@ -1,7 +1,7 @@
 import pytest
 from Employee import Employee, Manager
 from Task import Task
-# from Analytics import Analytics
+from Analytics import Analytics
 from Loader import Loader
 from Storage import Storage
 from datetime import date
@@ -20,62 +20,126 @@ class Testing:
         assert storage.get_employee('E1002').name == 'Dwight Schrute'
         assert storage.get_employee('E1001')._moods['2026-05-23'] == 7
 
-    def test_mood_rater_success(self):
-        """Test if an employee can properly rate their mood for the current day.
+    class TestMoodRater:
+        def test_mood_rater_success(self):
+            """Test if an employee can properly rate their mood for the current day.
 
-        The current day as of testing is '06-18-26'
-        """
-        s = Storage()
-        jim = s.get_employee('E1001')
-        t = Task('Prank Dwight', 10, 10, str(date.today()))
-        jim.set_tasks(str(date.today()), t)
-        """NOTE: ^^ this is used only for testing! The manager is supposed to 
-        add tasks for an employee, not the employee themself!"""
-        jim.rate_mood(9)
-        assert jim.get_specific_mood(str(date.today())) == 9
+            The current day as of testing is '06-18-26'
+            """
+            s = Storage()
+            m = Manager('Michael Scott', 'E0067')
+            jim = s.get_employee('E1001')
+            t = Task('Prank Dwight', 10, 10, str(date.today()))
+            m.add_task(t, jim, str(date.today()))
+            jim.rate_mood(9)
+            assert jim.get_specific_mood(str(date.today())) == 9
 
-    def test_mood_rater_no_task(self):
-        """Test the case where an employee tries to rate their mood, despite not
-        having task(s) for that day. This implies that the employee was essentially
-        absent that day."""
-        s = Storage()
-        jim = s.get_employee('E1001')
-        jim.rate_mood(9)
-        assert jim.get_specific_mood(str(date.today())) is None
+        def test_mood_rater_no_task(self):
+            """Test the case where an employee tries to rate their mood, despite not
+            having task(s) for that day. This implies that the employee was essentially
+            absent that day."""
+            s = Storage()
+            jim = s.get_employee('E1001')
+            jim.rate_mood(9)
+            assert jim.get_specific_mood(str(date.today())) is None
 
-    def test_mood_rater_day_exists(self):
-        """Test the case where an employee tries to rate their mood, yet they have
-        already rated their mood for that day. Note that employees rate their mood
-        before clocking off for work, so rating after the shift is over cannot work."""
-        s = Storage()
-        jim = s.get_employee('E1001')
-        t = Task('Prank Dwight', 10, 10, str(date.today()))
-        jim.set_tasks(str(date.today()), t)
-        """NOTE: ^^ this is used only for testing! The manager is supposed to 
-        add tasks for an employee, not the employee themself!"""
-        jim.rate_mood(9)
-        jim.rate_mood(4)
-        assert jim.get_specific_mood(str(date.today())) == 9 # no change
+        def test_mood_rater_day_exists(self):
+            """Test the case where an employee tries to rate their mood, yet they have
+            already rated their mood for that day. Note that employees rate their mood
+            before clocking off for work, so rating after the shift is over cannot work."""
+            s = Storage()
+            m = Manager('Michael Scott', 'E0067')
+            jim = s.get_employee('E1001')
+            t = Task('Prank Dwight', 10, 10, str(date.today()))
+            m.add_task(t, jim, str(date.today()))
+            jim.rate_mood(9)
+            jim.rate_mood(4)
+            assert jim.get_specific_mood(str(date.today())) == 9 # no change
 
-    def test_add_task_success(self):
-        """Test a manager adding a task for an employee."""
-        s = Storage()
-        jim = s.get_employee('E1001')
-        m = Manager('Michael Scott', 'E0067')
-        t = Task('Raid Utica', 10, 10, str(date.today()))
-        m.add_task(t, jim, str(date.today()))
-        jim_tasks = jim.get_tasks()
-        assert t in jim_tasks[str(date.today())]
+    class TestTaskCRUD:
+        def test_add_task_success(self):
+            """Test a manager adding a task for an employee."""
+            s = Storage()
+            jim = s.get_employee('E1001')
+            m = Manager('Michael Scott', 'E0067')
+            t = Task('Raid Utica', 10, 10, str(date.today()))
+            m.add_task(t, jim, str(date.today()))
+            jim_tasks = jim.get_tasks()
+            assert t in jim_tasks[str(date.today())]
 
-    def test_add_task_fail(self):
-        """Test a manager adding a duplicate task for an employee."""
-        s = Storage()
-        jim = s.get_employee('E1001')
-        m = Manager('Michael Scott', 'E0067')
-        t1 = Task('Raid Utica', 10, 10, str(date.today()))
-        m.add_task(t1, jim, str(date.today()))
-        t2 = Task('Raid Utica', 10, 10, str(date.today()))
-        m.add_task(t2, jim, str(date.today()))
-        jim_tasks = jim.get_tasks()
-        assert t1 in jim_tasks[str(date.today())]
-        assert t2 not in jim_tasks[str(date.today())] # no duplicate exists
+        def test_add_task_fail(self):
+            """Test a manager adding a duplicate task for an employee"""
+            s = Storage()
+            jim = s.get_employee('E1001')
+            m = Manager('Michael Scott', 'E0067')
+            t1 = Task('Raid Utica', 10, 10, str(date.today()))
+            m.add_task(t1, jim, str(date.today()))
+            t2 = Task('Raid Utica', 10, 10, str(date.today()))
+            m.add_task(t2, jim, str(date.today()))
+            jim_tasks = jim.get_tasks()
+            assert t1 in jim_tasks[str(date.today())]
+            assert t2 not in jim_tasks[str(date.today())] # no duplicate exists
+
+
+        def test_remove_task(self):
+            """Test a manager removing a task for an employee."""
+            s = Storage()
+            jim = s.get_employee('E1001')
+            m = Manager('Michael Scott', 'E0067')
+            #pre-removal:
+            assert jim.get_specific_task('2026-05-23', 'Client Outreach') is not None
+            m.remove_task('Client Outreach', jim, '2026-05-23')
+            #post-removal:
+            assert jim.get_specific_task('2026-05-23', 'Client Outreach') is None
+
+        def test_change_task(self):
+            """Test a manager changing a task for an employee."""
+            s = Storage()
+            jim = s.get_employee('E1001')
+            m = Manager('Michael Scott', 'E0067')
+            task = jim.get_specific_task('2026-05-23', 'Client Outreach')
+            # pre-change:
+            assert task.name == 'Client Outreach'
+            assert task.get_weight() == 9
+            assert task.get_difficulty() == 6
+            m.change_task('Client Outreach', jim, '2026-05-23', 'Contact Leads',
+                          8, 8)
+            # post-change:
+            assert task.name == 'Contact Leads'
+            assert task.get_weight() == 8
+            assert task.get_difficulty() == 8
+
+    class TestAnalyticsDataRetrieval:
+        def test_mood_value_retrieval(self):
+            """Test the helper method which retrieves mood values for a specific week.
+            Weeks are ISO-based.
+            """
+            s = Storage()
+            a = Analytics()
+            jim = s.get_employee('E1001')
+            assert a._get_mood_vals('2026-W21', jim) == [7, 4]
+            assert a._get_mood_vals('2026-W22', jim) == [6, 3]
+
+        def test_task_weight_value_retrieval(self):
+            """Test the helper method which retrieves task weights for a specific week.
+            Weeks are ISO-based.
+            """
+            s = Storage()
+            a = Analytics()
+            jim = s.get_employee('E1001')
+            assert (a._get_task_weights('2026-W21', jim) ==
+                    {"2026-05-23": [9, 6], "2026-05-24": [8, 4]})
+            assert (a._get_task_weights('2026-W22', jim) ==
+                    {"2026-05-25": [3, 5], "2026-05-26": [8, 4]})
+
+        def test_task_diff_value_retrieval(self):
+            """Test the helper method which retrieves task difficulties for a specific week.
+            Weeks are ISO-based.
+            """
+            s = Storage()
+            a = Analytics()
+            jim = s.get_employee('E1001')
+            assert (a._get_task_difficulties('2026-W21', jim) ==
+                    {"2026-05-23": [6, 7], "2026-05-24": [6, 7]})
+            assert (a._get_task_difficulties('2026-W22', jim) ==
+                    {"2026-05-25": [6, 7], "2026-05-26": [6, 8]})
