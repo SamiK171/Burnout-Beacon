@@ -21,14 +21,17 @@ class Task:
     _weight: int
     _difficulty: int
     _date: str
-    def __init__(self, name: str, weight: int, difficulty: int, t_date: str) -> None:
+    def __init__(self, name: str, weight: int, difficulty: int, t_date: str, completed: bool) -> None:
         """Instantiate a task.
 
         Note: ONLY a Manager can do this
+        Note: When tasks are created by the Loader, they may be instantiated as true if that
+        is what the JSON file says. Otherwise, when created by the Manager, their "completed"
+        value should default to False.
         Precondition: 0 <= weight <= 10, 0 <= difficulty <= 10
         """
         self.name = name
-        self.completed = False
+        self.completed = completed
         self._weight = weight
         self._difficulty = difficulty
         self._date = t_date

@@ -33,7 +33,7 @@ class Loader:
                     self.set_moods(mood_task_date, employees['timeline'][mood_task_date]['mood'], employee_obj)
                     for task in employees['timeline'][mood_task_date]['tasks']:
                         task_obj = Task(task['name'], task['weight'], task['difficulty'],
-                                        mood_task_date)
+                                        mood_task_date, task['completed'])
                         #employee_obj.set_tasks(mood_task_date, task_obj)
                         self.set_tasks(mood_task_date, task_obj, employee_obj)
 

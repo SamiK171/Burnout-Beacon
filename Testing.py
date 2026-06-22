@@ -13,12 +13,17 @@ class Testing:
     Standard cases, edge cases, and property-based testing are all covered.
      """
 
-    def test_employee_builder(self):
-        """Test if an employee can be built from a JSON file."""
-        storage = Storage()
-        assert storage.get_employee('E1001').name == 'Jim Halpert'
-        assert storage.get_employee('E1002').name == 'Dwight Schrute'
-        assert storage.get_employee('E1001')._moods['2026-05-23'] == 7
+    def test_all(self):
+        """Placeholder for all tests."""
+        pass
+
+    class TestObjectConstruction:
+        def test_employee_builder(self):
+            """Test if an employee can be built from a JSON file."""
+            storage = Storage()
+            assert storage.get_employee('E1001').name == 'Jim Halpert'
+            assert storage.get_employee('E1002').name == 'Dwight Schrute'
+            assert storage.get_employee('E1001')._moods['2026-05-23'] == 7
 
     class TestMoodRater:
         def test_mood_rater_success(self):
@@ -29,7 +34,7 @@ class Testing:
             s = Storage()
             m = Manager('Michael Scott', 'E0067')
             jim = s.get_employee('E1001')
-            t = Task('Prank Dwight', 10, 10, str(date.today()))
+            t = Task('Prank Dwight', 10, 10, str(date.today()), False)
             m.add_task(t, jim, str(date.today()))
             jim.rate_mood(9)
             assert jim.get_specific_mood(str(date.today())) == 9
@@ -50,7 +55,7 @@ class Testing:
             s = Storage()
             m = Manager('Michael Scott', 'E0067')
             jim = s.get_employee('E1001')
-            t = Task('Prank Dwight', 10, 10, str(date.today()))
+            t = Task('Prank Dwight', 10, 10, str(date.today()), False)
             m.add_task(t, jim, str(date.today()))
             jim.rate_mood(9)
             jim.rate_mood(4)
@@ -62,7 +67,7 @@ class Testing:
             s = Storage()
             jim = s.get_employee('E1001')
             m = Manager('Michael Scott', 'E0067')
-            t = Task('Raid Utica', 10, 10, str(date.today()))
+            t = Task('Raid Utica', 10, 10, str(date.today()), False)
             m.add_task(t, jim, str(date.today()))
             jim_tasks = jim.get_tasks()
             assert t in jim_tasks[str(date.today())]
@@ -72,9 +77,9 @@ class Testing:
             s = Storage()
             jim = s.get_employee('E1001')
             m = Manager('Michael Scott', 'E0067')
-            t1 = Task('Raid Utica', 10, 10, str(date.today()))
+            t1 = Task('Raid Utica', 10, 10, str(date.today()), False)
             m.add_task(t1, jim, str(date.today()))
-            t2 = Task('Raid Utica', 10, 10, str(date.today()))
+            t2 = Task('Raid Utica', 10, 10, str(date.today()), False)
             m.add_task(t2, jim, str(date.today()))
             jim_tasks = jim.get_tasks()
             assert t1 in jim_tasks[str(date.today())]
@@ -118,7 +123,7 @@ class Testing:
             a = Analytics()
             jim = s.get_employee('E1001')
             assert a._get_mood_vals('2026-W21', jim) == [7, 4]
-            assert a._get_mood_vals('2026-W22', jim) == [6, 3]
+            assert a._get_mood_vals('2026-W22', jim) == [6, 3, 8, 4, 9]
 
         def test_task_weight_value_retrieval(self):
             """Test the helper method which retrieves task weights for a specific week.
@@ -130,7 +135,11 @@ class Testing:
             assert (a._get_task_weights('2026-W21', jim) ==
                     {"2026-05-23": [9, 6], "2026-05-24": [8, 4]})
             assert (a._get_task_weights('2026-W22', jim) ==
-                    {"2026-05-25": [3, 5], "2026-05-26": [8, 4]})
+                    {'2026-05-25': [3, 5],
+                     '2026-05-26': [8, 4],
+                     '2026-05-27': [7, 10, 5],
+                     '2026-05-28': [9, 10, 5],
+                     '2026-05-29': [4, 10, 8]})
 
         def test_task_diff_value_retrieval(self):
             """Test the helper method which retrieves task difficulties for a specific week.
@@ -142,4 +151,34 @@ class Testing:
             assert (a._get_task_difficulties('2026-W21', jim) ==
                     {"2026-05-23": [6, 7], "2026-05-24": [6, 7]})
             assert (a._get_task_difficulties('2026-W22', jim) ==
-                    {"2026-05-25": [6, 7], "2026-05-26": [6, 8]})
+                    {'2026-05-25': [6, 7],
+                     '2026-05-26': [6, 8],
+                     '2026-05-27': [2, 8, 3],
+                     '2026-05-28': [3, 10, 2],
+                     '2026-05-29': [3, 10, 7]})
+        def test_task_comp_ratio(self):
+            """Test task completion to task expected ratio."""
+            s = Storage()
+            a = Analytics()
+            jim = s.get_employee('E1001')
+            # assert a._get_task_completed_expected_ratio('2026-W21', jim) == 0.75 #3/4
+            # assert a._get_task_completed_expected_ratio('2026-W22', jim) == 0.50 #2/4
+            assert a._get_task_completed_expected_ratio('2026-W21', jim) == [1.0, 0.50]
+            assert a._get_task_completed_expected_ratio('2026-W22', jim) == [1.0, 0.0, 0.6666666666666666, 1.0, 0.3333333333333333]
+
+    class TestAnalyticsVolatilityTrends:
+        def test_volatility_measurement_first(self):
+            """Test the helper method which analyzes the volatility (low or high)
+            of moods, task weights, difficulties, completion"""
+            s = Storage()
+            a = Analytics()
+            jim = s.get_employee('E1001')
+            jim_moods = a._get_mood_vals('2026-W22', jim)
+            assert a._volatility_measurement(jim_moods) == "High Volatility"
+            assert a._volatility_measurement([8, 12, 22, 24, 22]) == "High Volatility"
+            assert a._volatility_measurement([13, 14, 13, 15, 20]) == "Low/Stable Volatility"
+            assert a._volatility_measurement([1.0, 0.0, 0.66666, 1.0, 0.33333]) == "High Volatility"
+
+
+    class TestAnalyticsDiagnosis:
+        pass

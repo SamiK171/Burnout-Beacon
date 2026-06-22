@@ -3,6 +3,7 @@ from Employee import Manager
 # from typing import Optional
 from Task import Task
 from datetime import date
+import numpy as np
 
 class Analytics:
     """Analytics tracker and calculator.
@@ -65,6 +66,87 @@ class Analytics:
                 for task in tasks[singular_date]:
                     difficulty_vals.setdefault(singular_date, []).append(task.get_difficulty())
         return difficulty_vals
+
+    def _get_task_completed_expected_ratio(self, week_id: str, e: Employee) -> list[float]:
+        """Helper method for task completion ROC calculation."""
+        tasks = e.get_tasks()
+        ratios = []
+        completed = 0
+        for singular_date in tasks:
+            if self._to_iso_week(singular_date) == week_id:
+                for task in tasks[singular_date]:
+                    if task.completed:
+                        completed += 1
+                ratios.append(completed / len(tasks[singular_date]))
+                completed = 0
+        return ratios
+
+    def _volatility_measurement(self, l: list) -> str:
+        """Measures the volatility of the list <l>.
+        Adaptable to any list containing mood values or task weights, etc.
+        """
+
+        if len(l) < 2:
+            return "Insufficient data."
+
+        arr = np.array(l)
+        volatility_score = np.std(arr) / np.average(arr)
+        # Co-Efficient of Variation (Standard Deviation / Average)
+        threshold = 0.25 # 25% threshold.
+
+        if volatility_score > threshold:
+            return "High Volatility"
+        else:
+            return "Low/Stable Volatility"
+
+    def _trend_shift(self, l: list) -> str:
+        """Calculates the trend shift of the list <l>.
+        Determines whether it is increasing, decreasing,
+        or stable."""
+
+        if len(l) < 2:
+            return "Insufficient data."
+
+        threshold = 0.10 # 10% threshold
+        momentum = 0.50 # 50% momentum
+
+        arr = np.array(l)
+        net_change = arr[-1] - arr[0]
+        percentage_shift = net_change / arr[0]
+
+        jumps = np.diff(arr)
+        pos_jumps = (jumps > 0)
+        neg_jumps = (jumps < 0)
+
+        pos_ratio = pos_jumps / (len(jumps))
+        neg_ratio = neg_jumps / (len(jumps))
+
+        if percentage_shift > threshold:
+            if pos_ratio > momentum:
+                return "Sustained Increasing Trend"
+            else:
+                return "Stable with Upward Outlier"
+
+        if percentage_shift < threshold:
+            if neg_ratio > momentum:
+                return "Sustained Decreasing Trend"
+            else:
+                return "Stable with Downward Outlier"
+
+        if -threshold < percentage_shift < threshold:
+            return "Stable Trend"
+
+    def _combine_volatility_trend(self, l: list) -> str:
+        """Combine the volatility results and trend results."""
+        volatility = self._volatility_measurement(l)
+        trend = self._trend_shift(l)
+        return f"{volatility}, {trend}"
+
+    def analyzer(self, moods: list, weights: list, diff: list, comp: list, e: Employee) -> list[str]:
+        """Produces a verdict based on employee data."""
+        verdict = []
+        return verdict
+
 
     def calculate_mood_ROC(self):
         """Calculate the rate of change in a employee's mood

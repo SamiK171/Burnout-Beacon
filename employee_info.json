@@ -81,7 +81,85 @@
               "name": "Lead Follow-ups",
               "difficulty": 8,
               "weight": 4,
+              "completed": false
+            }
+          ]
+        },
+        "2026-05-27": {
+          "mood": 8,
+          "tasks": [
+            {
+              "task_id": "T1",
+              "name": "Contact Staples",
+              "difficulty": 2,
+              "weight": 7,
               "completed": true
+            },
+            {
+              "task_id": "T2",
+              "name": "Close Sales Deal with EY",
+              "difficulty": 8,
+              "weight": 10,
+              "completed": true
+            },
+            {
+              "task_id": "T3",
+              "name": "Contact Michael Scott",
+              "difficulty": 3,
+              "weight": 5,
+              "completed": false
+            }
+          ]
+        },
+        "2026-05-28": {
+          "mood": 4,
+          "tasks": [
+            {
+              "task_id": "T1",
+              "name": "Visit the Utica Branch",
+              "difficulty": 3,
+              "weight": 9,
+              "completed": true
+            },
+            {
+              "task_id": "T2",
+              "name": "Sales Pitch to Goldman Sachs",
+              "difficulty": 10,
+              "weight": 10,
+              "completed": true
+            },
+            {
+              "task_id": "T3",
+              "name": "Purchase from Dunder Mifflin Infinity",
+              "difficulty": 2,
+              "weight": 5,
+              "completed": true
+            }
+          ]
+        },
+        "2026-05-29": {
+          "mood": 9,
+          "tasks": [
+            {
+              "task_id": "T1",
+              "name": "Speak to Stanley about Sales",
+              "difficulty": 3,
+              "weight": 4,
+              "completed": true
+            },
+            {
+              "task_id": "T2",
+              "name": "Sales Pitch to the Bank",
+              "difficulty": 10,
+              "weight": 10,
+              "completed": false
+            },
+            {
+              "task_id": "T3",
+              "name": "Inspect Scranton Inventory",
+              "difficulty": 7,
+              "weight": 8,
+              "completed": false
             }
           ]
         }

@@ -62,5 +62,5 @@ if __name__ == "__main__":
     jim_tasks = jim.get_tasks()
     jim_list = jim_tasks['2026-05-23']
     print("Before Completion, May 23, 2026's Task 1:", jim_list[0])
-    jim.complete_task(jim_list[0])
-    print("After Completion, May 23, 2026's Task 1:", jim_list[0])
+    #jim.complete_task(jim_list[0])
+    #print("After Completion, May 23, 2026's Task 1:", jim_list[0])
