@@ -4,6 +4,7 @@ from Employee import Manager
 from Task import Task
 from datetime import date
 import numpy as np
+import pandas as pd
 
 class Analytics:
     """Analytics tracker and calculator.
@@ -81,6 +82,13 @@ class Analytics:
                 completed = 0
         return ratios
 
+    def _merge_lists(self, info: dict[str, list[int]]) -> list[int]:
+        """Return merged lists from <info>."""
+        merged = []
+        for key in info:
+            merged.append(sum(info[key]))
+        return merged
+
     def _volatility_measurement(self, l: list) -> str:
         """Measures the volatility of the list <l>.
         Adaptable to any list containing mood values or task weights, etc.
@@ -101,61 +109,162 @@ class Analytics:
 
     def _trend_shift(self, l: list) -> str:
         """Calculates the trend shift of the list <l>.
-        Determines whether it is increasing, decreasing,
+        Determines whether it is increasing, decreasing
         or stable."""
-
         if len(l) < 2:
             return "Insufficient data."
-
-        threshold = 0.10 # 10% threshold
-        momentum = 0.50 # 50% momentum
-
         arr = np.array(l)
-        net_change = arr[-1] - arr[0]
-        percentage_shift = net_change / arr[0]
+        smoothed_data = pd.Series(arr).ewm(span=3, adjust=False).mean().to_numpy()
 
-        jumps = np.diff(arr)
-        pos_jumps = (jumps > 0)
-        neg_jumps = (jumps < 0)
+        percentage_shift = (smoothed_data[-1] - smoothed_data[0]) / smoothed_data[0]
+        jumps = np.diff(smoothed_data)
+        pos_ratio = np.sum(jumps > 0) / len(jumps)
 
-        pos_ratio = pos_jumps / (len(jumps))
-        neg_ratio = neg_jumps / (len(jumps))
+        score = 0
+        if percentage_shift > 0.10:
+            score += 1
+        elif percentage_shift < -0.10:
+            score -= 1
 
-        if percentage_shift > threshold:
-            if pos_ratio > momentum:
-                return "Sustained Increasing Trend"
-            else:
-                return "Stable with Upward Outlier"
+        if pos_ratio > 0.55:
+            score += 1
+        elif pos_ratio < 0.45:
+            score -= 1
 
-        if percentage_shift < threshold:
-            if neg_ratio > momentum:
-                return "Sustained Decreasing Trend"
-            else:
-                return "Stable with Downward Outlier"
-
-        if -threshold < percentage_shift < threshold:
+        if score >= 1:
+            return "Increasing Trend"
+        elif score <= -1:
+            return "Decreasing Trend"
+        else:
             return "Stable Trend"
 
-    def _combine_volatility_trend(self, l: list) -> str:
-        """Combine the volatility results and trend results."""
-        volatility = self._volatility_measurement(l)
-        trend = self._trend_shift(l)
-        return f"{volatility}, {trend}"
+    def _mood_analyzer(self, vol: str, trend: str) -> list[str]:
+        """Analyze mood and return observations."""
+        results = []
 
-    def analyzer(self, moods: list, weights: list, diff: list, comp: list, e: Employee) -> list[str]:
+        if vol == "High Volatility":
+            results.append("Fluctuating & Inconsistent Mood")
+
+        if vol == "Low/Stable Volatility":
+            results.append("Minimal Change in Mood")
+
+        if trend == "Increasing Trend":
+            results.append("Improving Mood")
+
+        if trend == "Decreasing Trend":
+            results.append("Declining Mood")
+
+        if trend == "Stable Trend":
+            results.append("Consistent Mood")
+
+        return results
+
+    def _weight_analyzer(self, vol: str, trend: str) -> list[str]:
+        """Analyze weights and return observations."""
+        results = []
+
+        if vol == "High Volatility":
+            results.append("Fluctuating & Inconsistent Workload Importance")
+
+        if vol == "Low/Stable Volatility":
+            results.append("Minimal Change in Workload Importance")
+
+        if trend == "Increasing Trend":
+            results.append("Increasing Workload Importance")
+
+        if trend == "Decreasing Trend":
+            results.append("Decreasing Workload Importance")
+
+        if trend == "Stable Trend":
+            results.append("Consistent Workload Importance")
+
+        return results
+
+    def _diff_analyzer(self, vol: str, trend: str) -> list[str]:
+        """Analyze difficulties and return observations."""
+        results = []
+
+        if vol == "High Volatility":
+            results.append("Fluctuating & Inconsistent Workload Difficulty")
+
+        if vol == "Low/Stable Volatility":
+            results.append("Minimal Change in Workload Difficulty")
+
+        if trend == "Increasing Trend":
+            results.append("Increasing Workload Difficulty")
+
+        if trend == "Decreasing Trend":
+            results.append("Decreasing Workload Difficulty")
+
+        if trend == "Stable Trend":
+            results.append("Consistent Workload Difficulty")
+
+        return results
+
+    def _comp_analyzer(self, vol: str, trend: str) -> list[str]:
+        """Analyze completion and return observations."""
+        results = []
+
+        if vol == "High Volatility":
+            results.append("Fluctuating & Inconsistent Task Completion")
+
+        if vol == "Low/Stable Volatility":
+            results.append("Minimal Change in Task Completion")
+
+        if trend == "Increasing Trend":
+            results.append("Increase in Task Completion")
+
+        if trend == "Decreasing Trend":
+            results.append("Declining Task Completion")
+
+        if trend == "Stable Trend":
+            results.append("Consistent Task Completion")
+
+        return results
+
+    def total_analyzer(self, e: Employee, week_id: str) -> str:
         """Produces a verdict based on employee data."""
-        verdict = []
-        return verdict
+        mood_analysis = self._mood_analyzer(vol=self._volatility_measurement(self._get_mood_vals(week_id, e)),
+                                            trend=self._trend_shift(self._get_mood_vals(week_id, e)))
+        weight_analysis = self._weight_analyzer(vol=self._volatility_measurement(self._merge_lists(self._get_task_weights(week_id, e))),
+                                            trend=self._trend_shift(self._merge_lists(self._get_task_weights(week_id, e))))
+        diff_analysis = self._diff_analyzer(
+            vol=self._volatility_measurement(self._merge_lists(self._get_task_difficulties(week_id, e))),
+            trend=self._trend_shift(self._merge_lists(self._get_task_difficulties(week_id, e))))
+        comp_analysis = self._comp_analyzer(vol=self._volatility_measurement(self._get_task_completed_expected_ratio(week_id, e)),
+                                            trend=self._trend_shift(self._get_task_completed_expected_ratio(week_id, e)))
 
+        summary = [mood_analysis, weight_analysis, diff_analysis, comp_analysis]
+        report = f"{e.name}'s Burnout Diagnostic Report: \n"
 
-    def calculate_mood_ROC(self):
-        """Calculate the rate of change in a employee's mood
-        over time."""
-
-    def calculate_task_comp_ROC(self):
-        """Calculate the rate of change in an employee's task
-        completion over time."""
-
-    def calculate_weight_ROC(self):
-        """Calculate the rate of change in the weight of an
-        employee's tasks over time."""
+        for individual_summary in summary:
+            for info in individual_summary:
+                if individual_summary == mood_analysis:
+                    if info == mood_analysis[0]:
+                        report += "Mood Diagnostic: \n"
+                        report += f"{info}\n"
+                    else:
+                        report += f"{info}\n"
+                        report += "---------- \n"
+                elif individual_summary == weight_analysis:
+                    if info == weight_analysis[0]:
+                        report += "Task Weight Diagnostic: \n"
+                        report += f"{info}\n"
+                    else:
+                        report += f"{info}\n"
+                        report += "---------- \n"
+                elif individual_summary == diff_analysis:
+                    if info == diff_analysis[0]:
+                        report += "Task Difficulty Diagnostic: \n"
+                        report += f"{info}\n"
+                    else:
+                        report += f"{info}\n"
+                        report += "---------- \n"
+                else:
+                    if info == comp_analysis[0]:
+                        report += "Task Completion Diagnostic: \n"
+                        report += f"{info}\n"
+                    else:
+                        report += f"{info}\n"
+                        report += "---------- \n"
+        return report

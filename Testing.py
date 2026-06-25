@@ -174,11 +174,69 @@ class Testing:
             a = Analytics()
             jim = s.get_employee('E1001')
             jim_moods = a._get_mood_vals('2026-W22', jim)
-            assert a._volatility_measurement(jim_moods) == "High Volatility"
-            assert a._volatility_measurement([8, 12, 22, 24, 22]) == "High Volatility"
-            assert a._volatility_measurement([13, 14, 13, 15, 20]) == "Low/Stable Volatility"
-            assert a._volatility_measurement([1.0, 0.0, 0.66666, 1.0, 0.33333]) == "High Volatility"
+            jim_weights = a._merge_lists(a._get_task_weights('2026-W22', jim))
+            jim_difficulties = a._merge_lists(a._get_task_difficulties('2026-W22', jim))
+            jim_completion = a._get_task_completed_expected_ratio('2026-W22', jim)
+
+            assert a._volatility_measurement(jim_moods) == "High Volatility" # [6, 3, 8, 4, 9]
+            assert a._volatility_measurement(jim_weights) == "High Volatility" # [8, 12, 22, 24, 22]
+            assert a._volatility_measurement(jim_difficulties) == "Low/Stable Volatility" # [13, 14, 13, 15, 20]
+            assert a._volatility_measurement(jim_completion) == "High Volatility" # [1.0, 0.0 ,0.66666, 1.0, 0.33333]
+
+        def test_trend_shift(self):
+            """Test the helper method analyzing trend direction of list (inc, stable, dec)."""
+            s = Storage()
+            a = Analytics()
+            jim = s.get_employee('E1001')
+            jim_moods = a._get_mood_vals('2026-W22', jim)
+            jim_weights = a._merge_lists(a._get_task_weights('2026-W22', jim))
+            jim_difficulties = a._merge_lists(a._get_task_difficulties('2026-W22', jim))
+            jim_completion = a._get_task_completed_expected_ratio('2026-W22', jim)
+            assert a._trend_shift(jim_moods) == "Increasing Trend"
+            assert a._trend_shift(jim_weights) == "Increasing Trend"
+            #assert a._trend_shift([8, 12, 22, 24, 22]) == "Sustained Increasing Trend"
+            assert a._trend_shift(jim_difficulties) == "Increasing Trend"
+            #assert a._trend_shift([13, 14, 13, 15, 20]) == "Sustained Increasing Trend"
+            assert a._trend_shift(jim_completion) == "Decreasing Trend"
+            #assert a._trend_shift([1.0, 0.0, 0.66666, 1.0, 0.33333]) == "Sustained Decreasing Trend"
 
 
     class TestAnalyticsDiagnosis:
         pass
+
+        def test_total_analyzer(self):
+            s = Storage()
+            a = Analytics()
+            jim = s.get_employee('E1001')
+            assert a.total_analyzer(jim, '2026-W22') == ("Jim Halpert's Burnout Diagnostic Report: \n"
+ 'Mood Diagnostic: \n'
+ 'Fluctuating & Inconsistent Mood\n'
+ 'Improving Mood\n'
+ '---------- \n'
+ 'Task Weight Diagnostic: \n'
+ 'Fluctuating & Inconsistent Workload Importance\n'
+ 'Increasing Workload Importance\n'
+ '---------- \n'
+ 'Task Difficulty Diagnostic: \n'
+ 'Minimal Change in Workload Difficulty\n'
+ 'Increasing Workload Difficulty\n'
+ '---------- \n'
+ 'Task Completion Diagnostic: \n'
+ 'Fluctuating & Inconsistent Task Completion\n'
+ 'Declining Task Completion\n'
+ '---------- \n') != ('Mood Diagnostic: \n'
+ 'Fluctuating & Inconsistent Mood\n'
+ 'Improving Mood\n'
+ '---------- \n'
+ 'Task Weight Diagnostic: \n'
+ 'Fluctuating & Inconsistent Workload Importance\n'
+ 'Increasing Workload Importance\n'
+ '---------- \n'
+ 'Task Difficulty Diagnostic: \n'
+ 'Minimal Change in Workload Difficulty\n'
+ 'Increasing Workload Difficulty\n'
+ '---------- \n'
+ 'Task Completion Diagnostic: \n'
+ 'Fluctuating & Inconsistent Task Completion\n'
+ 'Declining Task Completion\n'
+ '---------- \n')
