@@ -204,39 +204,24 @@ class Testing:
     class TestAnalyticsDiagnosis:
         pass
 
-        def test_total_analyzer(self):
+        def test_total_analyzer_weekly(self):
+            """Test the analyzer for a specific week.
+            (May 25, 2026 - May 29, 2026)."""
             s = Storage()
             a = Analytics()
             jim = s.get_employee('E1001')
-            assert a.total_analyzer(jim, '2026-W22') == ("Jim Halpert's Burnout Diagnostic Report: \n"
- 'Mood Diagnostic: \n'
- 'Fluctuating & Inconsistent Mood\n'
- 'Improving Mood\n'
- '---------- \n'
- 'Task Weight Diagnostic: \n'
- 'Fluctuating & Inconsistent Workload Importance\n'
- 'Increasing Workload Importance\n'
- '---------- \n'
- 'Task Difficulty Diagnostic: \n'
- 'Minimal Change in Workload Difficulty\n'
- 'Increasing Workload Difficulty\n'
- '---------- \n'
- 'Task Completion Diagnostic: \n'
- 'Fluctuating & Inconsistent Task Completion\n'
- 'Declining Task Completion\n'
- '---------- \n') != ('Mood Diagnostic: \n'
- 'Fluctuating & Inconsistent Mood\n'
- 'Improving Mood\n'
- '---------- \n'
- 'Task Weight Diagnostic: \n'
- 'Fluctuating & Inconsistent Workload Importance\n'
- 'Increasing Workload Importance\n'
- '---------- \n'
- 'Task Difficulty Diagnostic: \n'
- 'Minimal Change in Workload Difficulty\n'
- 'Increasing Workload Difficulty\n'
- '---------- \n'
- 'Task Completion Diagnostic: \n'
- 'Fluctuating & Inconsistent Task Completion\n'
- 'Declining Task Completion\n'
- '---------- \n')
+            assert a.total_analyzer(e=jim, period='2026-W22', period_type='week') == 1.0
+
+        def test_total_analyzer_monthly(self):
+            """Test the analyzer for a specific month.
+            (May 2026) (does not include all days)."""
+            s = Storage()
+            a = Analytics()
+            jim = s.get_employee('E1001')
+            assert a.total_analyzer(e=jim, period='2026-05', period_type='month') == 1.0
+
+        def test_total_analyzer_yearly(self):
+            s = Storage()
+            a = Analytics()
+            jim = s.get_employee('E1001')
+            assert a.total_analyzer(e=jim, period='2026', period_type='year') == 1.0

@@ -37,49 +37,98 @@ class Analytics:
         dt = date.fromisoformat(date_str).isocalendar()
         return f"{dt.year}-W{dt.week:02d}"
 
-    def _get_mood_vals(self, week_id: str, e: Employee) -> list[int]:
+    def _get_mood_vals(self, period: str, e: Employee, period_type: str) -> list[int]:
         """Helper method for mood ROC calculation.
         Returns list of mood values for a specific week.
         """
         moods = e.get_moods()
         vals = []
-        for singular_date in moods:
-            if self._to_iso_week(singular_date) == week_id:
-                vals.append(moods[singular_date])
+        if period_type == "week":
+            for singular_date in moods:
+                if self._to_iso_week(singular_date) == period:
+                    vals.append(moods[singular_date])
+        elif period_type == "month":
+            for singular_date in moods:
+                if singular_date[:7] == period:
+                    vals.append(moods[singular_date])
+        elif period_type == "year": # year
+            for singular_date in moods:
+                if singular_date[:4] == period:
+                    vals.append(moods[singular_date])
         return vals
 
-    def _get_task_weights(self, week_id: str, e: Employee) -> dict[str, list[int]]:
+    def _get_task_weights(self, period: str, e: Employee, period_type: str) -> dict[str, list[int]]:
         """Helper method for task weight ROC calculation."""
         tasks = e.get_tasks()
         weight_vals = {}
-        for singular_date in tasks:
-            if self._to_iso_week(singular_date) == week_id:
-                for task in tasks[singular_date]:
-                    weight_vals.setdefault(singular_date, []).append(task.get_weight())
+
+        if period_type == "week":
+            for singular_date in tasks:
+                if self._to_iso_week(singular_date) == period:
+                    for task in tasks[singular_date]:
+                        weight_vals.setdefault(singular_date, []).append(task.get_weight())
+        elif period_type == "month":
+            for singular_date in tasks:
+                if singular_date[:7] == period:
+                    for task in tasks[singular_date]:
+                        weight_vals.setdefault(singular_date, []).append(task.get_weight())
+        elif period_type == "year":
+            for singular_date in tasks:
+                if singular_date[:4] == period:
+                    for task in tasks[singular_date]:
+                        weight_vals.setdefault(singular_date, []).append(task.get_weight())
         return weight_vals
 
-    def _get_task_difficulties(self, week_id: str, e: Employee) -> dict[str, list[int]]:
+    def _get_task_difficulties(self, period: str, e: Employee, period_type: str) -> dict[str, list[int]]:
         """Helper method for task difficulty ROC calculation."""
         tasks = e.get_tasks()
         difficulty_vals = {}
-        for singular_date in tasks:
-            if self._to_iso_week(singular_date) == week_id:
-                for task in tasks[singular_date]:
-                    difficulty_vals.setdefault(singular_date, []).append(task.get_difficulty())
+
+        if period_type == "week":
+            for singular_date in tasks:
+                if self._to_iso_week(singular_date) == period:
+                    for task in tasks[singular_date]:
+                        difficulty_vals.setdefault(singular_date, []).append(task.get_difficulty())
+        elif period_type == "month":
+            for singular_date in tasks:
+                if singular_date[:7] == period:
+                    for task in tasks[singular_date]:
+                        difficulty_vals.setdefault(singular_date, []).append(task.get_difficulty())
+        elif period_type == "year":
+            for singular_date in tasks:
+                if singular_date[:4] == period:
+                    for task in tasks[singular_date]:
+                        difficulty_vals.setdefault(singular_date, []).append(task.get_difficulty())
         return difficulty_vals
 
-    def _get_task_completed_expected_ratio(self, week_id: str, e: Employee) -> list[float]:
+    def _get_task_completed_expected_ratio(self, period: str, e: Employee, period_type: str) -> list[float]:
         """Helper method for task completion ROC calculation."""
         tasks = e.get_tasks()
         ratios = []
         completed = 0
-        for singular_date in tasks:
-            if self._to_iso_week(singular_date) == week_id:
-                for task in tasks[singular_date]:
-                    if task.completed:
-                        completed += 1
-                ratios.append(completed / len(tasks[singular_date]))
-                completed = 0
+
+        if period_type == "week":
+            for singular_date in tasks:
+                if self._to_iso_week(singular_date) == period:
+                    for task in tasks[singular_date]:
+                        if task.completed:
+                            completed += 1
+                    ratios.append(completed / len(tasks[singular_date]))
+                    completed = 0
+        elif period_type == "month":
+            for singular_date in tasks:
+                if singular_date[:7] == period:
+                    for task in tasks[singular_date]:
+                        if task.completed:
+                            completed += 1
+                    ratios.append(completed / len(tasks[singular_date]))
+        elif period_type == "year":
+            for singular_date in tasks:
+                if singular_date[:4] == period:
+                    for task in tasks[singular_date]:
+                        if task.completed:
+                            completed += 1
+                    ratios.append(completed / len(tasks[singular_date]))
         return ratios
 
     def _merge_lists(self, info: dict[str, list[int]]) -> list[int]:
@@ -222,20 +271,20 @@ class Analytics:
 
         return results
 
-    def total_analyzer(self, e: Employee, week_id: str) -> str:
+    def total_analyzer(self, e: Employee, period: str, period_type: str) -> str:
         """Produces a verdict based on employee data."""
-        mood_analysis = self._mood_analyzer(vol=self._volatility_measurement(self._get_mood_vals(week_id, e)),
-                                            trend=self._trend_shift(self._get_mood_vals(week_id, e)))
-        weight_analysis = self._weight_analyzer(vol=self._volatility_measurement(self._merge_lists(self._get_task_weights(week_id, e))),
-                                            trend=self._trend_shift(self._merge_lists(self._get_task_weights(week_id, e))))
+        mood_analysis = self._mood_analyzer(vol=self._volatility_measurement(self._get_mood_vals(period, e, period_type)),
+                                            trend=self._trend_shift(self._get_mood_vals(period, e, period_type)),)
+        weight_analysis = self._weight_analyzer(vol=self._volatility_measurement(self._merge_lists(self._get_task_weights(period, e, period_type))),
+                                            trend=self._trend_shift(self._merge_lists(self._get_task_weights(period, e, period_type)),))
         diff_analysis = self._diff_analyzer(
-            vol=self._volatility_measurement(self._merge_lists(self._get_task_difficulties(week_id, e))),
-            trend=self._trend_shift(self._merge_lists(self._get_task_difficulties(week_id, e))))
-        comp_analysis = self._comp_analyzer(vol=self._volatility_measurement(self._get_task_completed_expected_ratio(week_id, e)),
-                                            trend=self._trend_shift(self._get_task_completed_expected_ratio(week_id, e)))
+            vol=self._volatility_measurement(self._merge_lists(self._get_task_difficulties(period, e, period_type))),
+            trend=self._trend_shift(self._merge_lists(self._get_task_difficulties(period, e, period_type)),))
+        comp_analysis = self._comp_analyzer(vol=self._volatility_measurement(self._get_task_completed_expected_ratio(period, e, period_type)),
+                                            trend=self._trend_shift(self._get_task_completed_expected_ratio(period, e, period_type)))
 
         summary = [mood_analysis, weight_analysis, diff_analysis, comp_analysis]
-        report = f"{e.name}'s Burnout Diagnostic Report: \n"
+        report = f"{e.name}'s Wellbeing Report: \n"
 
         for individual_summary in summary:
             for info in individual_summary:
