@@ -2,7 +2,7 @@ from Employee import Employee
 from Employee import Manager
 # from typing import Optional
 from Task import Task
-from datetime import date
+from datetime import date, timedelta
 import numpy as np
 import pandas as pd
 
@@ -36,6 +36,13 @@ class Analytics:
     def _to_iso_week(self, date_str: str) -> str:
         dt = date.fromisoformat(date_str).isocalendar()
         return f"{dt.year}-W{dt.week:02d}"
+
+    def iso_week_to_date_range(self, year: int, week: int):
+        # ISO week: Monday is start of week
+        start = date.fromisocalendar(year, week, 1)  # Monday
+        end = start + timedelta(days=6)
+
+        return start.isoformat(), end.isoformat()
 
     def _get_mood_vals(self, period: str, e: Employee, period_type: str) -> list[int]:
         """Helper method for mood ROC calculation.
@@ -192,19 +199,19 @@ class Analytics:
         results = []
 
         if vol == "High Volatility":
-            results.append("Fluctuating & Inconsistent Mood")
+            results.append("High Volatility")
 
         if vol == "Low/Stable Volatility":
-            results.append("Minimal Change in Mood")
+            results.append("Low/Stable Volatility")
 
         if trend == "Increasing Trend":
-            results.append("Improving Mood")
+            results.append("Increasing Trend")
 
         if trend == "Decreasing Trend":
-            results.append("Declining Mood")
+            results.append("Declining Trend")
 
         if trend == "Stable Trend":
-            results.append("Consistent Mood")
+            results.append("Stable Trend")
 
         return results
 
@@ -213,19 +220,19 @@ class Analytics:
         results = []
 
         if vol == "High Volatility":
-            results.append("Fluctuating & Inconsistent Workload Importance")
+            results.append("High Volatility")
 
         if vol == "Low/Stable Volatility":
-            results.append("Minimal Change in Workload Importance")
+            results.append("Low/Stable Volatility")
 
         if trend == "Increasing Trend":
-            results.append("Increasing Workload Importance")
+            results.append("Increasing Trend")
 
         if trend == "Decreasing Trend":
-            results.append("Decreasing Workload Importance")
+            results.append("Decreasing Trend")
 
         if trend == "Stable Trend":
-            results.append("Consistent Workload Importance")
+            results.append("Stable Trend")
 
         return results
 
@@ -234,19 +241,19 @@ class Analytics:
         results = []
 
         if vol == "High Volatility":
-            results.append("Fluctuating & Inconsistent Workload Difficulty")
+            results.append("High Volatility")
 
         if vol == "Low/Stable Volatility":
-            results.append("Minimal Change in Workload Difficulty")
+            results.append("Low/Stable Volatility")
 
         if trend == "Increasing Trend":
-            results.append("Increasing Workload Difficulty")
+            results.append("Increasing Trend")
 
         if trend == "Decreasing Trend":
-            results.append("Decreasing Workload Difficulty")
+            results.append("Decreasing Trend")
 
         if trend == "Stable Trend":
-            results.append("Consistent Workload Difficulty")
+            results.append("Stable Trend")
 
         return results
 
@@ -255,21 +262,119 @@ class Analytics:
         results = []
 
         if vol == "High Volatility":
-            results.append("Fluctuating & Inconsistent Task Completion")
+            results.append("High Volatility")
 
         if vol == "Low/Stable Volatility":
-            results.append("Minimal Change in Task Completion")
+            results.append("Low/Stable Volatility")
 
         if trend == "Increasing Trend":
-            results.append("Increase in Task Completion")
+            results.append("Increasing Trend")
 
         if trend == "Decreasing Trend":
-            results.append("Declining Task Completion")
+            results.append("Declining Trend")
 
         if trend == "Stable Trend":
-            results.append("Consistent Task Completion")
+            results.append("Stable Trend")
 
         return results
+
+
+    def _negative_patterns(self, mood: list, weight: list, diff: list, comp: list) -> list[str]:
+        """Analyzes the negative patterns and return observations."""
+        obs = []
+
+        # WORKLOAD PRESSURE:
+        if weight[1] == "Increasing Trend" and diff[1] == "Increasing Trend":
+            obs.append("Workload pressure increasing.")
+
+        # PERFORMANCE DROP-OFF:
+        if mood[1] == "Declining Trend" and comp[1] == "Declining Trend":
+            obs.append("Overall performance weakening.")
+
+        # STRAIN MISMATCH:
+        if diff[1] == "Increasing Trend" and comp[1] == "Decreasing Trend":
+            obs.append("Difficulty exceeds execution capacity trend.")
+
+        # MOTIVATION DECAY:
+        if mood[1] == "Declining Trend" and weight[1] == "Increasing Trend":
+            obs.append("Emotional response declining under increasing responsibility.")
+
+        # SYSTEM INSTABILITY:
+        all_volatility = [mood[0], weight[0], diff[0], comp[0]]
+
+        if all_volatility.count("High Volatility") >= 2:
+            obs.append("Inconsistent system behavior across period.")
+
+        return obs
+
+    def _positive_patterns(self, mood: list, weight: list, diff: list, comp: list) -> list[str]:
+        """Analyzes the positive patterns and return observations."""
+        obs = []
+
+        # PERFORMANCE STRENGTH:
+        if mood[1] == "Increasing Trend" and comp[1] == "Increasing Trend":
+            obs.append("Improving engagement and output alignment.")
+
+        # WORKFLOW EFFICIENCY:
+        if diff[1] == "Decreasing Trend" and comp[1] == "Increasing Trend":
+            obs.append("Easier workload improving execution success.")
+
+        # STABLE THROUGH LOAD:
+        if weight[1] == "Increasing Trend" and comp[1] == "Stable Trend":
+            obs.append("Resilient task completion under rising workload.")
+
+        # RECOVERY SIGNAL:
+        if mood[1] == "Increasing Trend" and (comp[1] == "Increasing Trend" or comp[1] == "Stable Trend"):
+            obs.append("Rebound in wellbeing without performance loss.")
+
+        # SYSTEM STABILITY
+        all_volatility = [mood[0], weight[0], diff[0], comp[0]]
+
+        if all_volatility.count("Low/Stable Volatility") == 4:
+            obs.append("Consistent system behaviour over time.")
+
+        return obs
+
+    def _observation_report(self, e: Employee, period: str, period_type: str) -> str:
+        """Generates observation based on data. """
+        mood_analysis = self._mood_analyzer(
+            vol=self._volatility_measurement(self._get_mood_vals(period, e, period_type)),
+            trend=self._trend_shift(self._get_mood_vals(period, e, period_type)), )
+        weight_analysis = self._weight_analyzer(
+            vol=self._volatility_measurement(self._merge_lists(self._get_task_weights(period, e, period_type))),
+            trend=self._trend_shift(self._merge_lists(self._get_task_weights(period, e, period_type)), ))
+        diff_analysis = self._diff_analyzer(
+            vol=self._volatility_measurement(
+                self._merge_lists(self._get_task_difficulties(period, e, period_type))),
+            trend=self._trend_shift(self._merge_lists(self._get_task_difficulties(period, e, period_type)), ))
+        comp_analysis = self._comp_analyzer(
+            vol=self._volatility_measurement(self._get_task_completed_expected_ratio(period, e, period_type)),
+            trend=self._trend_shift(self._get_task_completed_expected_ratio(period, e, period_type)))
+
+        negatives = self._negative_patterns(mood_analysis, weight_analysis, diff_analysis, comp_analysis)
+        positives = self._positive_patterns(mood_analysis, weight_analysis, diff_analysis, comp_analysis)
+
+        report = "Key Observations: \n "
+
+        report += "Negative Patterns: \n"
+
+        if negatives:
+            for observation in negatives:
+                report += observation
+                report += "\n"
+        else:
+            report += "No significant negative patterns detected."
+
+        report += "Positive Patterns: \n"
+
+        if positives:
+            for observation in positives:
+                report += observation
+                report += "\n"
+        else:
+            report += "No significant positive patterns detected."
+
+        return report
 
     def total_analyzer(self, e: Employee, period: str, period_type: str) -> str:
         """Produces a verdict based on employee data."""
@@ -283,37 +388,35 @@ class Analytics:
         comp_analysis = self._comp_analyzer(vol=self._volatility_measurement(self._get_task_completed_expected_ratio(period, e, period_type)),
                                             trend=self._trend_shift(self._get_task_completed_expected_ratio(period, e, period_type)))
 
-        summary = [mood_analysis, weight_analysis, diff_analysis, comp_analysis]
-        report = f"{e.name}'s Wellbeing Report: \n"
+        report = f"{e.name}'s {period_type.capitalize()}ly Wellbeing Report: \n"
 
-        for individual_summary in summary:
-            for info in individual_summary:
-                if individual_summary == mood_analysis:
-                    if info == mood_analysis[0]:
-                        report += "Mood Diagnostic: \n"
-                        report += f"{info}\n"
-                    else:
-                        report += f"{info}\n"
-                        report += "---------- \n"
-                elif individual_summary == weight_analysis:
-                    if info == weight_analysis[0]:
-                        report += "Task Weight Diagnostic: \n"
-                        report += f"{info}\n"
-                    else:
-                        report += f"{info}\n"
-                        report += "---------- \n"
-                elif individual_summary == diff_analysis:
-                    if info == diff_analysis[0]:
-                        report += "Task Difficulty Diagnostic: \n"
-                        report += f"{info}\n"
-                    else:
-                        report += f"{info}\n"
-                        report += "---------- \n"
-                else:
-                    if info == comp_analysis[0]:
-                        report += "Task Completion Diagnostic: \n"
-                        report += f"{info}\n"
-                    else:
-                        report += f"{info}\n"
-                        report += "---------- \n"
+        report += "Mood Diagnostics: \n"
+        report += f"{mood_analysis[0]}\n"
+        report += f"{mood_analysis[1]}\n"
+
+        report += "Task Weight Diagnostics: \n"
+        report += f"{weight_analysis[0]}\n"
+        report += f"{weight_analysis[1]}\n"
+
+        report += "Task Difficulty Diagnostics: \n"
+        report += f"{diff_analysis[0]}\n"
+        report += f"{diff_analysis[1]}\n"
+
+        report += "Task Completion Diagnostics: \n"
+        report += f"{comp_analysis[0]}\n"
+        report += f"{comp_analysis[1]}\n"
+
+
+        if period_type == "week":
+            report += f"Week Timeframe: {self.iso_week_to_date_range(int(period[:4]), int(period[6:]))} \n"
+            report += f"Logged Days: {len(self._get_mood_vals(period, e, period_type))} \n"
+        elif period_type == "month":
+            report += f"Month Timeframe: {period}\n"
+            report += f"Logged Days: {len(self._get_mood_vals(period, e, period_type))}\n"
+        elif period_type == "year":
+            report += f"Year Timeframe: {period}\n"
+            report += f"Logged Days: {len(self._get_mood_vals(period, e, period_type))}\n"
+
+        report += self._observation_report(e, period, period_type)
+
         return report
