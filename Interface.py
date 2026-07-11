@@ -1,3 +1,5 @@
+import streamlit as st
+
 class Interface:
     """The graphical user interface.
 
