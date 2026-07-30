@@ -11,12 +11,32 @@ class Testing:
 
      This class focuses on testcases ensuring implementation is meeting expectations.
     Standard cases, edge cases, and property-based testing are all covered.
+
+    Components:
+
+    Section 1: The First Testing:
+    (All tested on one employee with 5 days worth of data):
+    - TestObjectConstruction: checks if objects are properly being constructed from the JSON
+    - TestMoodRater: checks if moods are properly being rated and recorded
+    - TestTaskCRUD: checks for correct CRUD functionalities
+    - TestAnalysisDataRetrieval: tests proper data extraction from employee objects for analysis
+    - TestAnalysisEnvironment, TestAnalysisVolatility, TestAnalysisDirection, TestAnalysisCases
+    and TestAnalysisResult: these classes all test the building blocks of the analysis and the final results
+
+    Section 2: The Analysis Focused Testing:
+    (Tested on a JSON file containing various employees with different data)
+
+    Section 3: JSON File/IO Testing
+
+    Section 4: Streamlit Frontend Testing
+
      """
 
     def test_all(self):
         """Placeholder for all tests."""
         pass
 
+# Section 1: The First Testing:
     class TestObjectConstruction:
         def test_employee_builder(self):
             """Test if an employee can be built from a JSON file."""
@@ -315,10 +335,20 @@ class Testing:
             jim = s.get_employee('E1001')
             state = a.develop_employee_state(jim, '2026-W22', 'week')
             score = a._sum_burnout_score(state)
-            assert a._get_score_category(score) == "Elevated Workload Strain"
+            assert a._get_score_category(score) == 'ELEVATED WORKLOAD STRAIN: Burnout Score 22.4/40.0'
 
     class TestAnalysisCases:
-        pass
+        def test_employee_case(self):
+            s = Storage('employee_info.json')
+            a = Analysis()
+            jim = s.get_employee('E1001')
+            state = a.develop_employee_state(jim, '2026-W22', 'week')
+            assert a.evaluate_case(state) == 'GENERAL OPERATIONAL LOAD: No acute operational patterns detected.'
 
     class TestAnalysisResult:
-        pass
+        def test_employee_delivered_report(self):
+            s = Storage('employee_info.json')
+            a = Analysis()
+            jim = s.get_employee('E1001')
+            assert a.deliver_report(jim, '2026-W22', 'week') == ('ELEVATED WORKLOAD STRAIN: Burnout Score 22.4/40.0\n'
+ 'GENERAL OPERATIONAL LOAD: No acute operational patterns detected.')

@@ -470,25 +470,76 @@ class Analysis:
 
     def _get_score_category(self, score: float) -> str:
         if score <= 12.0:
-            return "Optimal Baseline"
+            return f"OPTIMAL BASELINE: Burnout Score {round(score, 2)}/40.0"
         elif score <= 20.0:
-            return "Sustainable Operations"
+            return f"SUSTAINABLE OPERATIONS: Burnout Score {round(score, 2)}/40.0"
         elif score <= 28.0:
-            return "Elevated Workload Strain"
+            return f"ELEVATED WORKLOAD STRAIN: Burnout Score {round(score, 2)}/40.0"
         elif score <= 34.0:
-            return "High Operational Stress"
+            return f"HIGH OPERATIONAL STRESS: Burnout Score {round(score, 2)}/40.0"
         else:
-            return "Critical Strain Threshold"
+            return f"CRITICAL STRAIN THRESHOLD: Burnout Score {round(score, 2)}/40.0"
 
     # Step 6: Case-Based Matching:
 
-    def evaluate_weekly_matrix(self, e: Employee, state: tuple) -> str:
-        """Evaluate the weekly case matrix for employee <e> based on their <state>."""
-        pass
+    def evaluate_case(self, state: tuple) -> str:
+        """Evaluate the weekly case matrix for the employee based on their <state>."""
+
+        # CASE 1: High-Output Exhaustion:
+        if 'LM' and 'DOWN' in state[0]: # Low Mood & Downward Mood Direction
+            if ('MC' or 'GC') and 'UP' in state[1]: # Moderate/Good Completion & Upward Completion Direction
+                return ("HIGH-OUTPUT EXHAUSTION:"
+                        "High work output is consistent during collapsing emotional state.")
+
+        # CASE 2: Clinical Depletion:
+        if 'LM' and 'DOWN' in state[0]: # Low & Downward Mood
+            if 'LC' and 'DOWN' in state[1]: # Low & Downward
+                return ("CLINICAL DEPLETION:"
+                        "Workload effectiveness & productivity depletes as emotional state crumbles.")
+
+        # CASE 3: Quiet Quitting / Loss of Interest:
+        if 'LM' and 'LV' and 'FLAT' in state[0]: # Consistent low mood
+            if 'LC' and 'LV' and 'FLAT' in state[1]: # Consistent low completion
+                if 'LW' or 'MW' in state[2]: # Low or moderate workload
+                    if 'LD' or 'MD' in state[3]: # Low or moderate difficulty
+                        return ("LOSS OF INTEREST:"
+                                "Consistent low emotional state with low work completion despite"
+                                "reasonable workload and difficulty indicates interest detachment from work.")
+
+        # CASE 4: Structural Overload:
+        if 'DOWN' in state[1]: # Downward Completion
+            if 'HW' and 'UP' in state[2]: # Increasing and High Workload
+                if 'HD' and 'UP' in state[3]: # Increasing and High Difficulty
+                    return ("STRUCTURAL OVERLOAD:"
+                            "Task volume and complexity accelerating as output declines.")
+
+        # CASE 5: Complexity Blockade:
+        if 'MM' or 'LM' in state[0]: # Medium to Low Mood
+            if 'LC' and 'DOWN' in state[1]: # Downwards and Low Completion
+                if 'LW' or 'MW' in state[2]: # Low-to-Moderate Workload
+                    if 'HD' and 'UP' in state[3]: # Increasing and High Difficulty
+                        return ("COMPLEXITY BLOCKADE:"
+                                "Task volume remains stable but task complexity halts effective output."
+                                "")
+
+        # CASE 6: Optimal High-Capacity State:
+        if 'HM' and ('LV' or 'MV') in state[0]:
+            if 'GC' and ('UP' or 'FLAT') in state[1]:
+                if 'MW' or 'HW' in state[2]:
+                    if 'MD' or 'HD' in state[3]:
+                        return ("OPTIMAL HIGH-CAPACITY STATE:"
+                                "High-output under challenging work supported by high emotional resilience"
+                                "and low daily volatility.")
+
+        # CASE 7: Fallback Case:
+        return "GENERAL OPERATIONAL LOAD: No acute operational patterns detected."
 
     # Step 7: Result Construction:
 
-    def deliver_report(self, e: Employee) -> str:
+    def deliver_report(self, e: Employee, period: str, period_type: str) -> str:
         """Deliver the final burnout report for employee <e> based on their
         burnout score and case."""
-        pass
+        employee_state = self.develop_employee_state(e, period, period_type)
+        burnout_score = self._get_score_category(self._sum_burnout_score(employee_state))
+        burnout_case = self.evaluate_case(employee_state)
+        return burnout_score + "\n" + burnout_case
