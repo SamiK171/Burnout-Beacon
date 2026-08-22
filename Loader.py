@@ -86,9 +86,18 @@ class Loader:
         """Adds a task to an employee's data in the JSON, per the manager's request."""
         pass
 
-    def task_remover(self):
+    def task_remover(self, task_name: str, e: Employee, task_date: str):
         """Removes a task to an employee's data in the JSON, per the manager's request."""
-        pass
+        for employees in self.loader['employees']:
+            if employees['name'] == e.name:
+                for day_date in employees['timeline']:
+                    if day_date == task_date:
+                        for task in employees['timeline'][day_date]['tasks']:
+                            if task['name'] == task_name:
+                                employees['timeline'][day_date]['tasks'].remove(task)
+
+        with open(self.file_name, 'w', encoding='utf-8') as json_writer:
+            json.dump(self.loader, json_writer, indent=4)
 
     def task_changer(self, task_name: str,
                      e: Employee, task_date: str, name=None, weight=None, difficulty=None) -> None:

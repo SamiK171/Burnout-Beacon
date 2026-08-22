@@ -113,10 +113,10 @@ class Testing:
             jim = s.get_employee('E1001')
             m = Manager('Michael Scott', 'E0067', 'employee_info.json')
             #pre-removal:
-            assert jim.get_specific_task('2026-05-23', 'Client Outreach') is not None
-            m.remove_task('Client Outreach', jim, '2026-05-23')
+            assert jim.get_specific_task('2026-05-23', 'Contact Leads') is not None
+            m.remove_task('Contact Leads', jim, '2026-05-23')
             #post-removal:
-            assert jim.get_specific_task('2026-05-23', 'Client Outreach') is None
+            assert jim.get_specific_task('2026-05-23', 'Contact Leads') is None
 
         def test_change_task(self):
             """Test a manager changing a task for an employee."""
@@ -375,7 +375,13 @@ class Testing:
 
 # Section 3: JSON File/IO Testing
     class TestJSON:
-        # WARNING: JSON Testing will change Analysis results.
+        """
+        WARNING: JSON Testing will change Analysis results.
+        NOTE: JSON Testing only passes at the first attempt since the tests
+        change the objects/values (i.e. task objects, mood values) and
+        the information for them in the JSON file, rendering later
+        tests 'unsuccessful'.
+            """
 
         def test_task_completer(self):
 
@@ -450,7 +456,27 @@ class Testing:
         pass
 
     def test_task_remover(self):
-        pass
+        # Object Checker:
+        s = Storage('employee_info.json')
+        jim = s.get_employee('E1001')
+        m = Manager('Michael Scott', 'E0067', 'employee_info.json')
+        # pre-removal:
+        assert jim.get_specific_task('2026-05-30', 'Speak to Oscar about Accounting') is not None
+        m.remove_task('Speak to Oscar about Accounting', jim, '2026-05-30')
+        # post-removal:
+        assert jim.get_specific_task('2026-05-30', 'Speak to Oscar about accounting') is None
+
+        # JSON Checker:
+        with open('employee_info.json') as json_file:
+            self.loader = json.load(json_file)
+
+        for employees in self.loader['employees']:
+            if employees['name'] == jim.name:
+                for day_date in employees['timeline']:
+                    if day_date == '2026-05-30':
+                        assert employees['timeline'][day_date]['tasks'][0]['name'] != 'Speak to Oscar about Accounting'
+                        # this was originally index 0 so after the change, it should no longer be at index 0.
+
 
     def test_task_changer(self):
         # Note that tests only are successful once, due to object and JSON mutation,

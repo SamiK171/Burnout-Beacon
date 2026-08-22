@@ -117,6 +117,7 @@ class Manager(Employee):
 
     def add_task(self, t: Task, e: Employee, d: str) -> None:
         """Add a task <t> for the employee <e>. """
+        from Loader import Loader # avoids circular imports
         e_tasks = e.get_tasks()
         for dates in e_tasks:
             for task in e_tasks[dates]:
@@ -127,12 +128,15 @@ class Manager(Employee):
 
     def remove_task(self, task_name: str, e: Employee, task_date: str) -> None:
         """Remove a task for the employee <e> by its <task_name>."""
+        from Loader import Loader
         e_tasks = e.get_tasks()
         for dates in e_tasks:
             if dates == task_date:
                 for task in e_tasks[dates]:
                     if task.name == task_name:
                         e_tasks[dates].remove(task)
+        l = Loader(self._file_name)
+        l.task_remover(task_name, e, task_date)
 
     def change_task(self, task_name: str, e: Employee,
                     task_date: str, name=None, weight=None, difficulty=None) -> None:

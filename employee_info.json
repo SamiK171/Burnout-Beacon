@@ -162,13 +162,6 @@
                 "2026-05-30": {
                     "tasks": [
                         {
-                            "task_id": "T1",
-                            "name": "Speak to Oscar about Accounting",
-                            "difficulty": 3,
-                            "weight": 4,
-                            "completed": true
-                        },
-                        {
                             "task_id": "T2",
                             "name": "Test Dunder Mifflin Infinity",
                             "difficulty": 10,
