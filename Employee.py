@@ -22,7 +22,7 @@ class Employee:
     role: str
     _moods: dict[str, int]
     _tasks: dict[str, list[Task]]
-    def __init__(self, name: str, role: str, employee_id: str) -> None:
+    def __init__(self, name: str, role: str, employee_id: str, file_name: str) -> None:
         """Instantiate an employee with given <name>, <role> and <employee_id>.
         Note: ONLY the Manager can do this.
         """
@@ -31,6 +31,7 @@ class Employee:
         self.employee_id = employee_id
         self._moods = {}
         self._tasks = {}
+        self._file_name = file_name
 
     def get_moods(self) -> dict[str, int]:
         """Get the daily moods of an employee."""
@@ -56,23 +57,29 @@ class Employee:
         else:
             return None # could be an exception later
 
-    def rate_mood(self, mood_val: int) -> None:
+    def rate_mood(self, mood_val: int, mood_date: str) -> None:
         """Rate mood for the day which is <mood_val>.
 
         Precondition: 1 <= <mood_val> <= 10
         """
-        curr = str(date.today())
+        from Loader import Loader
         if 1 <= mood_val <= 10:
-            if curr in self._moods or curr not in self._tasks:
+            if mood_date not in self._tasks: # indicates employee absence
                 ... # RAISE Error or handle here. TBD.
             else:
-                self._moods[curr] = mood_val
+                self._moods[mood_date] = mood_val
+                l = Loader(self._file_name)
+                l.mood_adder(mood_val, mood_date, self)
         else:
             ... # raise some error/exception perhaps.
 
+
     def complete_task(self, t: Task) -> None:
         """Complete a task <t>."""
+        from Loader import Loader
         t.completed = True
+        l = Loader(self._file_name)
+        l.task_completer(self, t)
 
     def __str__(self):
         """String representation of the Employee."""
@@ -100,12 +107,12 @@ class Manager(Employee):
     _moods: dict[date, int]
     _tasks: dict[date, dict[str, Task]]
 
-    def __init__(self, name: str, manager_id: str) -> None:
+    def __init__(self, name: str, manager_id: str, file_name: str) -> None:
         """Instantiate a manager with given <name> and <manager_id>.
 
         Note: ONLY the Manager can do this.
         """
-        super().__init__(name, 'Manager', manager_id)
+        super().__init__(name, 'Manager', manager_id, file_name)
         pass
 
     def add_task(self, t: Task, e: Employee, d: str) -> None:
@@ -129,8 +136,11 @@ class Manager(Employee):
 
     def change_task(self, task_name: str, e: Employee,
                     task_date: str, name=None, weight=None, difficulty=None) -> None:
-        """Change a task <t> for the employee <e>."""
+        """Change a task <t> for the employee <e>.
+        Managers cannot change if a task is completed or not as only the employee can do that.
+        """
         # ROUGH IMPLEMENTATION (the case where date is changed has not been covered yet)
+        from Loader import Loader
         e_tasks = e.get_tasks()
         for dates in e_tasks:
             if dates == task_date:
@@ -142,7 +152,8 @@ class Manager(Employee):
                             task.set_weight(weight)
                         if difficulty is not None:
                             task.set_difficulty(difficulty)
-
+        l = Loader(self._file_name)
+        l.task_changer(task_name, e, task_date, name, weight, difficulty)
 
 if __name__ == '__main__':
     x = str(date.today())
