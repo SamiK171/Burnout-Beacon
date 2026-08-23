@@ -55,8 +55,8 @@ class Testing:
             s = Storage('employee_info.json')
             m = Manager('Michael Scott', 'E0067', 'employee_info.json')
             jim = s.get_employee('E1001')
-            t = Task('Prank Dwight', 10, 10, str(date.today()), False)
-            m.add_task(t, jim, str(date.today()))
+            t = Task('T1', 'Prank Dwight', 10, 10, str(date.today()), False)
+            m.add_task(t, jim)
             jim.rate_mood(9, str(date.today()))
             assert jim.get_specific_mood(str(date.today())) == 9
 
@@ -69,18 +69,16 @@ class Testing:
             jim.rate_mood(9, str(date.today()))
             assert jim.get_specific_mood(str(date.today())) is None
 
-        def test_mood_rater_day_exists(self):
-            """Test the case where an employee tries to rate their mood, yet they have
-            already rated their mood for that day. Note that employees rate their mood
-            before clocking off for work, so rating after the shift is over cannot work."""
+        def test_mood_rater_change(self):
+            """Test the case where an employee updates their mood for a day."""
             s = Storage('employee_info.json')
             m = Manager('Michael Scott', 'E0067', 'employee_info.json')
             jim = s.get_employee('E1001')
-            t = Task('Prank Dwight', 10, 10, str(date.today()), False)
-            m.add_task(t, jim, str(date.today()))
+            t = Task('T1', 'Prank Dwight', 10, 10, str(date.today()), False)
+            m.add_task(t, jim)
             jim.rate_mood(9, str(date.today()))
             jim.rate_mood(4, str(date.today()))
-            assert jim.get_specific_mood(str(date.today())) == 9 # no change
+            assert jim.get_specific_mood(str(date.today())) == 4 # no change
 
     class TestTaskCRUD:
         def test_add_task_success(self):
@@ -88,8 +86,8 @@ class Testing:
             s = Storage('employee_info.json')
             jim = s.get_employee('E1001')
             m = Manager('Michael Scott', 'E0067', 'employee_info.json')
-            t = Task('Raid Utica', 10, 10, str(date.today()), False)
-            m.add_task(t, jim, str(date.today()))
+            t = Task('T1', 'Raid Utica', 10, 10, str(date.today()), False)
+            m.add_task(t, jim)
             jim_tasks = jim.get_tasks()
             assert t in jim_tasks[str(date.today())]
 
@@ -98,10 +96,10 @@ class Testing:
             s = Storage('employee_info.json')
             jim = s.get_employee('E1001')
             m = Manager('Michael Scott', 'E0067', 'employee_info.json')
-            t1 = Task('Raid Utica', 10, 10, str(date.today()), False)
-            m.add_task(t1, jim, str(date.today()))
-            t2 = Task('Raid Utica', 10, 10, str(date.today()), False)
-            m.add_task(t2, jim, str(date.today()))
+            t1 = Task('T1', 'Raid Utica', 10, 10, str(date.today()), False)
+            m.add_task(t1, jim)
+            t2 = Task('T2', 'Raid Utica', 10, 10, str(date.today()), False)
+            m.add_task(t2, jim)
             jim_tasks = jim.get_tasks()
             assert t1 in jim_tasks[str(date.today())]
             assert t2 not in jim_tasks[str(date.today())] # no duplicate exists
@@ -452,8 +450,50 @@ class Testing:
                     if day_date == '2026-05-30':
                         assert employees['timeline'][day_date]['mood'] == 10
 
-    def test_task_adder(self):
-        pass
+    def test_task_adder_existing_date(self):
+
+        # Object Checker:
+        s = Storage('employee_info.json')
+        jim = s.get_employee('E1001')
+        m = Manager('Michael Scott', 'E0067', 'employee_info.json')
+        t = Task('T3', 'Distribute Flyers', 6, 3, '2026-05-23', False)
+        m.add_task(t, jim)
+        jim_tasks = jim.get_tasks()
+        assert t in jim_tasks['2026-05-23']
+
+        # JSON Checker:
+        with open('employee_info.json') as json_file:
+            self.loader = json.load(json_file)
+
+        for employees in self.loader['employees']:
+            if employees['name'] == jim.name:
+                for day_date in employees['timeline']:
+                    if day_date == t.get_date():
+                        for task in employees['timeline'][day_date]['tasks']:
+                            if task['name'] == t.name:
+                                assert task['completed'] is False # ensure task has been added
+
+    def test_task_adder_new_date(self):
+        # Object Checker:
+        s = Storage('employee_info.json')
+        jim = s.get_employee('E1001')
+        m = Manager('Michael Scott', 'E0067', 'employee_info.json')
+        t = Task('T1', 'Star in Dunder Mifflin Commercial', 4, 1, '2026-05-31', False)
+        m.add_task(t, jim)
+        jim_tasks = jim.get_tasks()
+        assert t in jim_tasks['2026-05-31']
+
+        # JSON Checker:
+        with open('employee_info.json') as json_file:
+            self.loader = json.load(json_file)
+
+        for employees in self.loader['employees']:
+            if employees['name'] == jim.name:
+                for day_date in employees['timeline']:
+                    if day_date == t.get_date(): # good sign since date has been added
+                        for task in employees['timeline'][day_date]['tasks']:
+                            if task['name'] == t.name: # good sign since task has been added
+                                assert task['completed'] is False # method completer
 
     def test_task_remover(self):
         # Object Checker:

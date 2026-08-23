@@ -115,7 +115,7 @@ class Manager(Employee):
         super().__init__(name, 'Manager', manager_id, file_name)
         pass
 
-    def add_task(self, t: Task, e: Employee, d: str) -> None:
+    def add_task(self, t: Task, e: Employee) -> None:
         """Add a task <t> for the employee <e>. """
         from Loader import Loader # avoids circular imports
         e_tasks = e.get_tasks()
@@ -123,8 +123,9 @@ class Manager(Employee):
             for task in e_tasks[dates]:
                 if task.name == t.name: # if the task already exists
                     return None # raise some error here later & finish method
-        e_tasks.setdefault(d, []).append(t) # otherwise add the task
-
+        e_tasks.setdefault(t.get_date(), []).append(t)
+        l = Loader(self._file_name)
+        l.task_adder(t, e)
 
     def remove_task(self, task_name: str, e: Employee, task_date: str) -> None:
         """Remove a task for the employee <e> by its <task_name>."""

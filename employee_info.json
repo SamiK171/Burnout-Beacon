@@ -9,18 +9,18 @@
                     "mood": 5,
                     "tasks": [
                         {
-                            "task_id": "T1",
-                            "name": "Contact Leads",
-                            "difficulty": 8,
-                            "weight": 8,
-                            "completed": true
-                        },
-                        {
                             "task_id": "T2",
                             "name": "Sales Report",
                             "difficulty": 7,
                             "weight": 6,
                             "completed": true
+                        },
+                        {
+                            "task_id": "T3",
+                            "name": "Distribute Flyers",
+                            "difficulty": 3,
+                            "weight": 6,
+                            "completed": false
                         }
                     ]
                 },
@@ -39,7 +39,7 @@
                             "name": "Sales Report",
                             "difficulty": 7,
                             "weight": 4,
-                            "completed": false
+                            "completed": true
                         }
                     ]
                 },
@@ -177,6 +177,17 @@
                         }
                     ],
                     "mood": 10
+                },
+                "2026-05-31": {
+                    "tasks": [
+                        {
+                            "task_id": "T1",
+                            "name": "Star in Dunder Mifflin Commercial",
+                            "difficulty": 1,
+                            "weight": 4,
+                            "completed": false
+                        }
+                    ]
                 }
             }
         },

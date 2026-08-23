@@ -34,7 +34,7 @@ class Loader:
                     if 'mood' in employees['timeline'][mood_task_date]:
                         self.set_moods(mood_task_date, employees['timeline'][mood_task_date]['mood'], employee_obj)
                     for task in employees['timeline'][mood_task_date]['tasks']:
-                        task_obj = Task(task['name'], task['weight'], task['difficulty'],
+                        task_obj = Task(task['task_id'], task['name'], task['weight'], task['difficulty'],
                                         mood_task_date, task['completed'])
                         #employee_obj.set_tasks(mood_task_date, task_obj)
                         self.set_tasks(mood_task_date, task_obj, employee_obj)
@@ -82,9 +82,34 @@ class Loader:
         with open(self.file_name, 'w', encoding='utf-8') as json_writer:
             json.dump(self.loader, json_writer, indent=4)
 
-    def task_adder(self):
+    def task_adder(self, t: Task, e: Employee) -> None:
         """Adds a task to an employee's data in the JSON, per the manager's request."""
-        pass
+        task_info = {
+            "task_id": t.t_id,
+            "name": t.name,
+            "difficulty": t.get_difficulty(),
+            "weight": t.get_weight(),
+            "completed": t.completed
+        }
+
+        exists = False
+
+        # Case 1: task is added to an existing date.
+        for employees in self.loader['employees']:
+            if employees['name'] == e.name:
+                for day_date in employees['timeline']:
+                    if day_date == t.get_date():
+                        employees['timeline'][day_date]['tasks'].append(task_info)
+                        exists = True
+
+        # Case 2: task is added to an existing date
+        if not exists:
+            for employees in self.loader['employees']:
+                if employees['name'] == e.name:
+                    employees['timeline'][t.get_date()] = {"tasks": [task_info]}
+
+        with open(self.file_name, 'w', encoding='utf-8') as json_writer:
+            json.dump(self.loader, json_writer, indent=4)
 
     def task_remover(self, task_name: str, e: Employee, task_date: str):
         """Removes a task to an employee's data in the JSON, per the manager's request."""
