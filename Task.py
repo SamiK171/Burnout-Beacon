@@ -21,7 +21,7 @@ class Task:
     _weight: int
     _difficulty: int
     _date: str
-    def __init__(self, name: str, weight: int, difficulty: int, t_date: str, completed: bool) -> None:
+    def __init__(self, t_id: str, name: str, weight: int, difficulty: int, t_date: str, completed: bool) -> None:
         """Instantiate a task.
 
         Note: ONLY a Manager can do this
@@ -30,6 +30,7 @@ class Task:
         value should default to False.
         Precondition: 0 <= weight <= 10, 0 <= difficulty <= 10
         """
+        self.t_id = t_id
         self.name = name
         self.completed = completed
         self._weight = weight

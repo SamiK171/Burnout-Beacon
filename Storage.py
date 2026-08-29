@@ -9,9 +9,9 @@ class Storage:
     This is the location where important data lives in real-time, and allows access
     to the current state of the system live.
     """
-    def __init__(self):
+    def __init__(self, json_file: str):
         """Initialize the storage system."""
-        l = Loader('employee_info.json') # <- TEMPORARILY HARDCODED
+        l = Loader(json_file)
         self._employee_storage = {}
         l.build_employees(self._employee_storage)
 
