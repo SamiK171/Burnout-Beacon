@@ -63,7 +63,7 @@ class Employee:
         else:
             return None
 
-    def rate_mood(self, mood_val: int, mood_date: str) -> None:
+    def rate_mood(self, mood_val: int, mood_date: str) -> str | None:
         """Rate mood for the day which is <mood_val>.
 
         Precondition: 1 <= <mood_val> <= 10
@@ -71,13 +71,13 @@ class Employee:
         from Loader import Loader
         if 1 <= mood_val <= 10:
             if mood_date not in self._tasks: # indicates employee absence
-                ... # RAISE Error or handle here. TBD.
+                return "Employee has no tasks for this day implying absence." # RAISE Error or handle here. TBD.
             else:
                 self._moods[mood_date] = mood_val
                 l = Loader(self._file_name)
                 l.mood_adder(mood_val, mood_date, self)
         else:
-            ... # raise some error/exception perhaps.
+            return "Insufficient requirements to rate mood."
 
 
     def complete_task(self, t: Task) -> None:

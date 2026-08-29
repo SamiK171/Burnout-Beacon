@@ -74,7 +74,7 @@ class Analysis:
 
     # Step 1: Extraction:
 
-    def _get_mood_vals(self, period: str, e: Employee, period_type: str) -> list[int]:
+    def _get_mood_vals(self, period: str, e: Employee, period_type: str) -> list[int] | str:
         """Helper method for mood ROC calculation.
         Returns list of mood values for a specific week.
         """
@@ -84,14 +84,8 @@ class Analysis:
             for singular_date in moods:
                 if self._to_iso_week(singular_date) == period:
                     vals.append(moods[singular_date])
-        elif period_type == "month":
-            for singular_date in moods:
-                if singular_date[:7] == period:
-                    vals.append(moods[singular_date])
-        elif period_type == "year": # year
-            for singular_date in moods:
-                if singular_date[:4] == period:
-                    vals.append(moods[singular_date])
+        if vals == []:
+            return "Insufficient data."
         return vals
 
     def _get_task_weights(self, period: str, e: Employee, period_type: str) -> dict[str, list[int]]:
@@ -102,16 +96,6 @@ class Analysis:
         if period_type == "week":
             for singular_date in tasks:
                 if self._to_iso_week(singular_date) == period:
-                    for task in tasks[singular_date]:
-                        weight_vals.setdefault(singular_date, []).append(task.get_weight())
-        elif period_type == "month":
-            for singular_date in tasks:
-                if singular_date[:7] == period:
-                    for task in tasks[singular_date]:
-                        weight_vals.setdefault(singular_date, []).append(task.get_weight())
-        elif period_type == "year":
-            for singular_date in tasks:
-                if singular_date[:4] == period:
                     for task in tasks[singular_date]:
                         weight_vals.setdefault(singular_date, []).append(task.get_weight())
         return weight_vals
@@ -126,19 +110,9 @@ class Analysis:
                 if self._to_iso_week(singular_date) == period:
                     for task in tasks[singular_date]:
                         difficulty_vals.setdefault(singular_date, []).append(task.get_difficulty())
-        elif period_type == "month":
-            for singular_date in tasks:
-                if singular_date[:7] == period:
-                    for task in tasks[singular_date]:
-                        difficulty_vals.setdefault(singular_date, []).append(task.get_difficulty())
-        elif period_type == "year":
-            for singular_date in tasks:
-                if singular_date[:4] == period:
-                    for task in tasks[singular_date]:
-                        difficulty_vals.setdefault(singular_date, []).append(task.get_difficulty())
         return difficulty_vals
 
-    def _get_task_completed_expected_ratio(self, period: str, e: Employee, period_type: str) -> list[float]:
+    def _get_task_completed_expected_ratio(self, period: str, e: Employee, period_type: str) -> list[float] | str:
         """Helper method for task completion ROC calculation."""
         tasks = e.get_tasks()
         ratios = []
@@ -152,20 +126,9 @@ class Analysis:
                             completed += 1
                     ratios.append(completed / len(tasks[singular_date]))
                     completed = 0
-        elif period_type == "month":
-            for singular_date in tasks:
-                if singular_date[:7] == period:
-                    for task in tasks[singular_date]:
-                        if task.completed:
-                            completed += 1
-                    ratios.append(completed / len(tasks[singular_date]))
-        elif period_type == "year":
-            for singular_date in tasks:
-                if singular_date[:4] == period:
-                    for task in tasks[singular_date]:
-                        if task.completed:
-                            completed += 1
-                    ratios.append(completed / len(tasks[singular_date]))
+
+        if ratios == []:
+            return "Insufficient data."
         return ratios
 
     def merge_diff(self, info: dict[str, list[int]]) -> list[int]:
@@ -195,6 +158,10 @@ class Analysis:
         7 - 10: High Mood
 
         """
+
+        if type(data) is str:
+            return "No available mood data."
+
         low, decent, high = [], [], []
         for val in data:
             if 1 <= val <= 4:
@@ -221,6 +188,9 @@ class Analysis:
         <= 50%: Low Completion
         > 50%: Good Completion
         """
+        if type(data) is str:
+            return "No available task completion data."
+
         low, good = [], []
         for val in data:
             if val <= 0.5:
@@ -250,6 +220,9 @@ class Analysis:
         Weekly Average < 15 => Low Weight
 
         """
+        if len(data) == 0 or type(data) is str:
+            return "No available task weight data."
+
         weekly_avg = sum(data) / len(data)
 
         for val in data:
@@ -272,6 +245,9 @@ class Analysis:
         Weekly Average < 5 => Low Difficulty
 
         """
+        if len(data) == 0 or type(data) is str:
+            return "No available task difficulty data."
+
         weekly_avg = sum(data) / len(data)
 
         if weekly_avg >= 8:
@@ -282,25 +258,16 @@ class Analysis:
 
     # Step 3: Volatility:
 
-    def average_calculator(self, data: list[int] | list[float]) -> float:
-        """Calculate the average of <data>."""
-        return sum(data) / len(data)
-
-    def mad_calculator(self, data: list[int] | list[float]) -> float:
-        """Calculate the mean absolute deviation of <data>."""
-        mad = 0
-        avg = self.average_calculator(data)
-        for val in data:
-            mad += abs(val - avg)
-        return mad / len(data)
-
-    def mas_calculator(self, data: list[int] | list[float]) -> float:
+    def mas_calculator(self, data: list[int] | list[float]) -> float | str:
         """Calculate the mean absolute step of <data>."""
-        n = len(data)
-        count = 0
-        for i in range(n - 1):
-            count += abs(data[i + 1] - data[i])
-        return (1 / (n - 1)) * count
+        if len(data) == 0 or type(data) is str:
+            return "No available data"
+        else:
+            n = len(data)
+            count = 0
+            for i in range(n - 1):
+                count += abs(data[i + 1] - data[i])
+            return (1 / (n - 1)) * count
 
 
     def mood_volatility(self, data: list[int] | list[float]) -> str:
@@ -309,6 +276,8 @@ class Analysis:
         <data> contains mood values or task completion values
         over timeframe.
         """
+        if len(data) == 0 or type(data) is str:
+            return "No available data"
         data_mas = self.mas_calculator(data)
         if data_mas > 2.5:
             return "HV" # High Volatility
@@ -323,6 +292,8 @@ class Analysis:
         <data> contains task completion values
         over timeframe.
         """
+        if len(data) == 0 or type(data) is str:
+            return "No available data"
         data_mas = self.mas_calculator(data)
         if data_mas > 0.35:
             return "HV" # High Volatility
@@ -336,6 +307,8 @@ class Analysis:
 
         <data> contains task weight values over timeframe.
         """
+        if len(data) == 0 or type(data) is str:
+            return "No available data"
         data_mas = self.mas_calculator(data)
         # relative_mad = (data_mad / (len(data) / sum(data))) * 100
         if data_mas > 6.0:
@@ -350,6 +323,8 @@ class Analysis:
 
         <data> contains task difficulty values over timeframe.
         """
+        if len(data) == 0 or type(data) is str:
+            return "No available data"
         data_mas = self.mas_calculator(data)
         if data_mas > 1.8:
             return "HV"  # High Volatility
@@ -381,6 +356,8 @@ class Analysis:
 
     def mood_diff_direction(self, data: list[int]) -> str:
         """Calculate the mood or difficulty direction of <data>."""
+        if len(data) == 0 or type(data) is str:
+            return "No available data"
         if self.window_average(data) > 0.5:
             return "UP"
         elif -0.5 < self.window_average(data) < 0.5:
@@ -390,6 +367,8 @@ class Analysis:
 
     def comp_direction(self, data: list[float]) -> str:
         """Calculate the comp direction of <data>."""
+        if len(data) == 0 or type(data) is str:
+            return "No available data"
         if self.window_average(data) > 0.10:
             return "UP"
         elif -0.10 < self.window_average(data) < 0.10:
@@ -399,6 +378,8 @@ class Analysis:
 
     def weight_direction(self, data: list[int]) -> str:
         """Calculate the weight direction of <data>."""
+        if len(data) == 0 or type(data) is str:
+            return "No available data"
         if self.window_average(data) > 3.0:
             return "UP"
         elif -3.0 < self.window_average(data) < 3.0:
@@ -431,35 +412,47 @@ class Analysis:
         (diff_env, diff_vol, diff_dir),
         )
 
-    def _calculate_mood_score(self, state: tuple) -> float:
+    def _calculate_mood_score(self, state: tuple) -> float | str:
         """Calculate the mood score of <state>."""
-        env = self._score_matrix["Environmental Points"][state[0][0]] * self._score_matrix["Global Weights"]["ENV"]
-        vol = self._score_matrix["Volatility Points"][state[0][1]] * self._score_matrix["Global Weights"]["VOL"]
-        direction = self._score_matrix["Internal Direction Points"][state[0][2]] * self._score_matrix["Global Weights"]["DIR"]
+        try:
+            env = self._score_matrix["Environmental Points"][state[0][0]] * self._score_matrix["Global Weights"]["ENV"]
+            vol = self._score_matrix["Volatility Points"][state[0][1]] * self._score_matrix["Global Weights"]["VOL"]
+            direction = self._score_matrix["Internal Direction Points"][state[0][2]] * self._score_matrix["Global Weights"]["DIR"]
+        except KeyError:
+            return 0.0
         return env + vol + direction
 
-    def _calculate_comp_score(self, state: tuple) -> float:
+    def _calculate_comp_score(self, state: tuple) -> float | str:
         """Calculate the comp score of <state>."""
-        env = self._score_matrix["Environmental Points"][state[1][0]] * self._score_matrix["Global Weights"]["ENV"]
-        vol = self._score_matrix["Volatility Points"][state[1][1]] * self._score_matrix["Global Weights"]["VOL"]
-        direction = self._score_matrix["Internal Direction Points"][state[1][2]] * self._score_matrix["Global Weights"][
-            "DIR"]
+        try:
+            env = self._score_matrix["Environmental Points"][state[1][0]] * self._score_matrix["Global Weights"]["ENV"]
+            vol = self._score_matrix["Volatility Points"][state[1][1]] * self._score_matrix["Global Weights"]["VOL"]
+            direction = self._score_matrix["Internal Direction Points"][state[1][2]] * self._score_matrix["Global Weights"][
+                "DIR"]
+        except KeyError:
+            return 0.0
         return env + vol + direction
 
-    def _calculate_weight_score(self, state: tuple) -> float:
+    def _calculate_weight_score(self, state: tuple) -> float | str:
         """Calculate the weight score of <state>."""
-        env = self._score_matrix["Environmental Points"][state[2][0]] * self._score_matrix["Global Weights"]["ENV"]
-        vol = self._score_matrix["Volatility Points"][state[2][1]] * self._score_matrix["Global Weights"]["VOL"]
-        direction = self._score_matrix["External Direction Points"][state[2][2]] * self._score_matrix["Global Weights"][
-            "DIR"]
+        try:
+            env = self._score_matrix["Environmental Points"][state[2][0]] * self._score_matrix["Global Weights"]["ENV"]
+            vol = self._score_matrix["Volatility Points"][state[2][1]] * self._score_matrix["Global Weights"]["VOL"]
+            direction = self._score_matrix["External Direction Points"][state[2][2]] * self._score_matrix["Global Weights"][
+                "DIR"]
+        except KeyError:
+            return 0.0
         return env + vol + direction
 
-    def _calculate_diff_score(self, state: tuple) -> float:
+    def _calculate_diff_score(self, state: tuple) -> float | str:
         """Calculate the diff score of <state>."""
-        env = self._score_matrix["Environmental Points"][state[3][0]] * self._score_matrix["Global Weights"]["ENV"]
-        vol = self._score_matrix["Volatility Points"][state[3][1]] * self._score_matrix["Global Weights"]["VOL"]
-        direction = self._score_matrix["External Direction Points"][state[3][2]] * self._score_matrix["Global Weights"][
-            "DIR"]
+        try:
+            env = self._score_matrix["Environmental Points"][state[3][0]] * self._score_matrix["Global Weights"]["ENV"]
+            vol = self._score_matrix["Volatility Points"][state[3][1]] * self._score_matrix["Global Weights"]["VOL"]
+            direction = self._score_matrix["External Direction Points"][state[3][2]] * self._score_matrix["Global Weights"][
+                "DIR"]
+        except KeyError:
+            return 0.0
         return env + vol + direction
 
     def _sum_burnout_score(self, state: tuple) -> float:
@@ -545,7 +538,11 @@ class Analysis:
         employee_state = self.develop_employee_state(e, period, period_type)
         burnout_score = self._get_score_category(self._sum_burnout_score(employee_state))
         burnout_case = self.evaluate_case(employee_state)
-        return burnout_score + "\n" + burnout_case
+
+        report = f"{burnout_score}\n{burnout_case}"
+        if '0.0/40.0' in report: # impossible case. only happens when data is insufficient.
+            return "Insufficient data for a report."
+        return report
 
 if __name__ == '__main__':
     s = Storage('10_employee_dataset.json')

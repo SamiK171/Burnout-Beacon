@@ -4,7 +4,8 @@ from Analysis import Analysis
 from Employee import Employee
 from Task import Task
 from Loader import Loader
-from datetime import datetime
+from datetime import datetime, timedelta
+import pandas as pd
 
 class Interface:
     """The graphical user interface powered by Streamlit.
@@ -44,8 +45,7 @@ class EmployeeView(Interface):
         col_left, col_mid, col_right = st.columns([1, 2, 1])
         # Left (Task & Mood History), # Mid: Analysis Report, # Right: Mood Rating, Employee Selection
 
-
-        # RIGHT NAVIGATION BUTTONS:
+        # RIGHT COLUMN BUTTONS:
         with col_right:
 
             # Employee & Week Selection:
@@ -53,7 +53,8 @@ class EmployeeView(Interface):
             st.subheader("👤 Employee Selection")
             selected_employee = st.selectbox("Select Yourself",
                          options=employee_dict.values(),
-                         format_func=lambda emp: f"{emp.name} (ID: {emp.id})")
+                         format_func=lambda emp: f"{emp.name} (ID: {emp.employee_id})")
+
             st.subheader("🕰️ Week Selection")
             selected_week = st.selectbox("Select A Week Number",
                                          options=range(1, 53),
@@ -69,22 +70,58 @@ class EmployeeView(Interface):
 
             st.subheader("🎭 Rate Mood")
             mood = st.slider("How are you feeling today?", 1, 10, 5)
-            if st.button("Submit Mood Log", use_container_width=True):
-                selected_employee.rate_mood(mood, str(datetime.now().date()))
+            if st.button("Submit Mood Log", width="stretch"):
+                # width="stretch" equivalent to use_container_width=True
+                mood_rating = selected_employee.rate_mood(mood, str(datetime.now().date()))
                 # ^ currently this is designed to be for today's date, might change later
-                st.success("Mood Logged!")
+                if type(mood_rating) is str:
+                    st.warning("Mood cannot be rated!")
+                else:
+                    st.success("Mood Logged!")
 
-        # LEFT NAVIGATION BUTTONS:
+        # LEFT COLUMN BUTTONS:
         with col_left:
             st.subheader("Quick Navigation")
-            if st.button("📋 Tasks for Today", use_container_width=True):
+            if st.button("📋 Tasks for Today", width="stretch"):
                 self._show_today_tasks_dialog(selected_employee)
 
-            if st.button("📅 Task History", use_container_width=True):
+            if st.button("📅 Task History", width="stretch"):
                 self._show_task_history_dialog(selected_employee)
 
-            if st.button("🎭 Mood History", use_container_width=True):
+            if st.button("🎭 Mood History", width="stretch"):
                 self._show_mood_history_dialog(selected_employee)
+
+        # MID COLUMN:
+        with col_mid:
+            st.subheader("📊 Burnout Analysis Report")
+            report = self.analysis.deliver_report(selected_employee, week_id, 'week')
+
+            if report == "Insufficient data for a report.":
+                st.warning(report)
+            else:
+
+                week_start = datetime.fromisocalendar(int(curr_year), selected_week, 1)
+                week_end = week_start + timedelta(days=4)
+                st.info(f"Timeframe: Start: {week_start.date()} | End: {week_end.date()}")
+                st.info(report)
+
+                mood_vals = self.analysis._get_mood_vals(week_id, selected_employee, 'week')
+                task_comp_vals = self.analysis._get_task_completed_expected_ratio(week_id, selected_employee, 'week')
+
+                data = {
+                    "Day": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+                    "Mood": mood_vals,
+                    "Workload": task_comp_vals,
+                }
+
+                df = pd.DataFrame(data)
+                day_order = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+
+                df["Day"] = pd.Categorical(df["Day"], categories=day_order, ordered=True)
+
+                df = df.sort_values("Day").set_index("Day")
+
+                st.line_chart(df)
 
     def _show_today_tasks_dialog(self, e: Employee):
         """Show today's tasks of the employee."""
@@ -120,6 +157,12 @@ class EmployeeView(Interface):
         for mood_date in total_mood_history:
             st.write(f"Date: {mood_date}, Mood: {total_mood_history[mood_date]}/10")
 
-class ManagerView(Interface):
+class ManagerView(EmployeeView):
     """The manager view."""
     pass
+
+# SOFTWARE EXECUTION:
+
+st.set_page_config(layout="wide", page_title="Burnout Beacon")
+active_view = EmployeeView('10_employee_dataset.json')
+active_view.render()
