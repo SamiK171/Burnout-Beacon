@@ -107,7 +107,7 @@ class EmployeeView(Interface):
 
                 mood_vals = self.analysis._get_mood_vals(week_id, selected_employee, 'week')
                 task_comp_vals = self.analysis._get_task_completed_expected_ratio(week_id, selected_employee, 'week')
-                scaled_completion = [comp * 10 for comp in task_comp_vals]
+                scaled_completion = [comp * 10 for comp in task_comp_vals] # multiply comp ratios by 10 to match mood scaling
                 data = {
                     "Day": ["Mon", "Tue", "Wed", "Thu", "Fri"],
                     "Mood": mood_vals,
