@@ -42,6 +42,7 @@ class EmployeeView(Interface):
 
     def render(self):
         self.render_top_bar(" 👔 EMPLOYEE PORTAL: ")
+
         col_left, col_mid, col_right = st.columns([1, 2, 1])
         # Left (Task & Mood History), # Mid: Analysis Report, # Right: Mood Rating, Employee Selection
 
@@ -158,18 +159,6 @@ class EmployeeView(Interface):
         curr_year = str(datetime.now().year)
         week_id = f'{curr_year}-W{selected_week}'
         self._display_analysis_week_tasks(e, week_id)
-        # total_task_history = e.get_tasks()
-        #
-        # if not total_task_history:
-        #     st.write("No task history available.")
-        #
-        # for task_date in total_task_history:
-        #     st.write(f"Date: {task_date}")
-        #     for task in total_task_history[task_date]:
-        #         st.write(f"Task Name: {task.name}"
-        #                  f" |  Weight: {task.get_weight()}/10"
-        #                  f" | Difficulty: {task.get_difficulty()}/10")
-        #     st.write("-----------------")
 
     @st.dialog("🎭 Mood History")
     def _show_mood_history_dialog(self, e: Employee):
@@ -181,13 +170,6 @@ class EmployeeView(Interface):
         curr_year = str(datetime.now().year)
         week_id = f'{curr_year}-W{selected_week}'
         self._display_analysis_week_moods(e, week_id)
-        # total_mood_history = e.get_moods()
-        #
-        # if not total_mood_history:
-        #     st.write("No mood history available.")
-        #
-        # for mood_date in total_mood_history:
-        #     st.write(f"Date: {mood_date} | Mood: {total_mood_history[mood_date]}/10")
 
     @st.dialog("✅ Complete Task")
     def _select_task_to_complete(self, e: Employee):
@@ -241,7 +223,6 @@ class EmployeeView(Interface):
             st.success(st.session_state.flash_msg)
             del st.session_state.flash_msg
 
-    #@st.dialog("💼 Check Week's Tasks")
     def _display_analysis_week_tasks(self, e: Employee, w: str):
         """Display the tasks for the week."""
         week_tasks = e.get_tasks_for_specific_week(w)
@@ -257,7 +238,6 @@ class EmployeeView(Interface):
                              f" Completed: {"Yes" if task.completed is True else "No"}")
                 st.write("-----------------")
 
-    #@st.dialog("🧠 Check Week's Moods")
     def _display_analysis_week_moods(self, e: Employee, w: str):
         """Display the moods for the week."""
         week_moods = e.get_moods_for_specific_week(w)
@@ -269,10 +249,91 @@ class EmployeeView(Interface):
 
 class ManagerView(EmployeeView):
     """The manager view."""
-    pass
+    def render(self):
+        """Render the manager view."""
+        self.render_top_bar(" 👨‍💼 MANAGEMENT PORTAL: ")
+
+        col_left, col_mid, col_right = st.columns([1, 2, 1])
+
+        with col_right:
+        # Employee & Week Selection (manager can choose any employee they wish):
+            employee_dict = self.storage.get_all_employees()
+            st.subheader("👤 Employee Selection")
+            selected_employee = st.selectbox("Select An Employee",
+                                             options=employee_dict.values(),
+                                             format_func=lambda emp: f"{emp.name} (ID: {emp.employee_id})")
+
+            st.subheader("🕰️ Week Selection")
+            selected_week = st.selectbox("Select A Week Number",
+                                         options=range(1, 53),
+                                         format_func=lambda week: f"Week: {week}"
+                                         )
+            curr_year = str(datetime.now().year)
+            week_id = f'{curr_year}-W{selected_week}'
+
+            st.write(f"Selected Employee: {selected_employee.name}")
+            st.write(f"Selected Week: {selected_week}")
+
+            st.divider()
+
+        with col_left:
+            if st.button("✚ Add Task", width="stretch"):
+                self._add_task_for_employee(selected_employee)
+            if st.button("⊖ Remove Task", width="stretch"):
+                self._remove_task_for_employee(selected_employee)
+            if st.button("📝 Edit Task", width="stretch"):
+                self._edit_task_for_employee(selected_employee)
+
+        with col_mid:
+            st.subheader("📊 Burnout Analysis Report")
+            report = self.analysis.deliver_report(selected_employee, week_id, 'week')
+
+            if report == "Insufficient data for a report.":
+                st.warning(report)
+            else:
+
+                week_start = datetime.fromisocalendar(int(curr_year), selected_week, 1)
+                week_end = week_start + timedelta(days=4)
+                st.info(f"Timeframe: Start: {week_start.date()} | End: {week_end.date()}")
+                st.info(report)
+
+                mood_vals = self.analysis._get_mood_vals(week_id, selected_employee, 'week')
+                task_comp_vals = self.analysis._get_task_completed_expected_ratio(week_id, selected_employee, 'week')
+                scaled_completion = [comp * 10 for comp in task_comp_vals] # multiply comp ratios by 10 to match mood scaling
+                data = {
+                    "Day": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+                    "Mood": mood_vals,
+                    "Task Completion": scaled_completion,
+                }
+
+                df = pd.DataFrame(data)
+                day_order = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+
+                df["Day"] = pd.Categorical(df["Day"], categories=day_order, ordered=True)
+
+                df = df.sort_values("Day").set_index("Day")
+
+                st.line_chart(df)
+
+                st.info("Weekly Context: ")
+                if st.button("💼 Check Week's Tasks", use_container_width=True):
+                    self._display_analysis_week_tasks(selected_employee, week_id)
+                if st.button("🧠 Check Week's Moods", use_container_width=True):
+                    self._display_analysis_week_moods(selected_employee, week_id)
+
+    def _add_task_for_employee(self, e: Employee):
+        pass
+
+    def _remove_task_for_employee(self, e: Employee):
+        pass
+
+    def _edit_task_for_employee(self, e: Employee):
+        pass
 
 # SOFTWARE EXECUTION:
 
 st.set_page_config(layout="wide", page_title="Burnout Beacon")
-active_view = EmployeeView('10_employee_dataset.json')
-active_view.render()
+#active_view1 = EmployeeView('10_employee_dataset.json')
+active_view2 = ManagerView('10_employee_dataset.json')
+#active_view1.render()
+active_view2.render()
