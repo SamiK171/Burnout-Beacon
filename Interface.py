@@ -145,34 +145,49 @@ class EmployeeView(Interface):
             for task in today_tasks:
                 st.write(f"Task: {task.name}"
                          f" | Weight: {task.get_weight()}/10"
-                         f" | Difficulty: {task.get_difficulty()}/10")
+                         f" | Difficulty: {task.get_difficulty()}/10"
+                         f" | Completed: {'Yes' if task.completed is True else 'No'}")
 
     @st.dialog("📅 Task History")
     def _show_task_history_dialog(self, e: Employee):
         """Show the task history of the employee."""
-        total_task_history = e.get_tasks()
-
-        if not total_task_history:
-            st.write("No task history available.")
-
-        for task_date in total_task_history:
-            st.write(f"Date: {task_date}")
-            for task in total_task_history[task_date]:
-                st.write(f"Task Name: {task.name}"
-                         f" |  Weight: {task.get_weight()}/10"
-                         f" | Difficulty: {task.get_difficulty()}/10")
-            st.write("-----------------")
+        selected_week = st.selectbox("Select A Week Number",
+                                     options=range(1, 53),
+                                     format_func=lambda week: f"Week: {week}"
+                                     )
+        curr_year = str(datetime.now().year)
+        week_id = f'{curr_year}-W{selected_week}'
+        self._display_analysis_week_tasks(e, week_id)
+        # total_task_history = e.get_tasks()
+        #
+        # if not total_task_history:
+        #     st.write("No task history available.")
+        #
+        # for task_date in total_task_history:
+        #     st.write(f"Date: {task_date}")
+        #     for task in total_task_history[task_date]:
+        #         st.write(f"Task Name: {task.name}"
+        #                  f" |  Weight: {task.get_weight()}/10"
+        #                  f" | Difficulty: {task.get_difficulty()}/10")
+        #     st.write("-----------------")
 
     @st.dialog("🎭 Mood History")
     def _show_mood_history_dialog(self, e: Employee):
         """Show the mood history of the employee."""
-        total_mood_history = e.get_moods()
-
-        if not total_mood_history:
-            st.write("No mood history available.")
-
-        for mood_date in total_mood_history:
-            st.write(f"Date: {mood_date} | Mood: {total_mood_history[mood_date]}/10")
+        selected_week = st.selectbox("Select A Week Number",
+                                     options=range(1, 53),
+                                     format_func=lambda week: f"Week: {week}"
+                                     )
+        curr_year = str(datetime.now().year)
+        week_id = f'{curr_year}-W{selected_week}'
+        self._display_analysis_week_moods(e, week_id)
+        # total_mood_history = e.get_moods()
+        #
+        # if not total_mood_history:
+        #     st.write("No mood history available.")
+        #
+        # for mood_date in total_mood_history:
+        #     st.write(f"Date: {mood_date} | Mood: {total_mood_history[mood_date]}/10")
 
     @st.dialog("✅ Complete Task")
     def _select_task_to_complete(self, e: Employee):
@@ -197,7 +212,8 @@ class EmployeeView(Interface):
                     label = (
                         f"**{task.name}** — "
                         f"Weight: {task.get_weight()}/10 | "
-                        f"Difficulty: {task.get_difficulty()}/10"
+                        f"Difficulty: {task.get_difficulty()}/10 | "
+                        f"Completed: {'Yes' if task.completed is True else 'No'}"
                     )
                     # Render a checkbox for each task
                     task_checks[task] = st.checkbox(label, key=f"chk_{task.name}")
@@ -225,7 +241,7 @@ class EmployeeView(Interface):
             st.success(st.session_state.flash_msg)
             del st.session_state.flash_msg
 
-    @st.dialog("💼 Check Week's Tasks")
+    #@st.dialog("💼 Check Week's Tasks")
     def _display_analysis_week_tasks(self, e: Employee, w: str):
         """Display the tasks for the week."""
         week_tasks = e.get_tasks_for_specific_week(w)
@@ -241,7 +257,7 @@ class EmployeeView(Interface):
                              f" Completed: {"Yes" if task.completed is True else "No"}")
                 st.write("-----------------")
 
-    @st.dialog("🧠 Check Week's Moods")
+    #@st.dialog("🧠 Check Week's Moods")
     def _display_analysis_week_moods(self, e: Employee, w: str):
         """Display the moods for the week."""
         week_moods = e.get_moods_for_specific_week(w)
