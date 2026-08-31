@@ -91,6 +91,9 @@ class EmployeeView(Interface):
             if st.button("🎭 Mood History", width="stretch"):
                 self._show_mood_history_dialog(selected_employee)
 
+            if st.button("✅ Complete Task", width="stretch"):
+                self._select_task_to_complete(selected_employee)
+
         # MID COLUMN:
         with col_mid:
             st.subheader("📊 Burnout Analysis Report")
@@ -123,6 +126,7 @@ class EmployeeView(Interface):
 
                 st.line_chart(df)
 
+    @st.dialog("📋 Tasks for Today")
     def _show_today_tasks_dialog(self, e: Employee):
         """Show today's tasks of the employee."""
         curr_date = str(datetime.now().date())
@@ -132,8 +136,11 @@ class EmployeeView(Interface):
             st.write("No available tasks for today.")
         else:
             for task in today_tasks:
-                st.write(f"Task: {task.name}, Weight: {task.get_weight()}/10, Difficulty: {task.get_difficulty()}/10")
+                st.write(f"Task: {task.name}"
+                         f" | Weight: {task.get_weight()}/10"
+                         f" | Difficulty: {task.get_difficulty()}/10")
 
+    @st.dialog("📅 Task History")
     def _show_task_history_dialog(self, e: Employee):
         """Show the task history of the employee."""
         total_task_history = e.get_tasks()
@@ -144,9 +151,12 @@ class EmployeeView(Interface):
         for task_date in total_task_history:
             st.write(f"Date: {task_date}")
             for task in total_task_history[task_date]:
-                st.write(f"Task Name: {task.name}, Weight: {task.get_weight()}/10,"
-                         f"Difficulty: {task.get_difficulty()}/10")
+                st.write(f"Task Name: {task.name}"
+                         f" |  Weight: {task.get_weight()}/10"
+                         f" | Difficulty: {task.get_difficulty()}/10")
+            st.write("-----------------")
 
+    @st.dialog("🎭 Mood History")
     def _show_mood_history_dialog(self, e: Employee):
         """Show the mood history of the employee."""
         total_mood_history = e.get_moods()
@@ -155,7 +165,59 @@ class EmployeeView(Interface):
             st.write("No mood history available.")
 
         for mood_date in total_mood_history:
-            st.write(f"Date: {mood_date}, Mood: {total_mood_history[mood_date]}/10")
+            st.write(f"Date: {mood_date} | Mood: {total_mood_history[mood_date]}/10")
+
+    @st.dialog("✅ Complete Task")
+    def _select_task_to_complete(self, e: Employee):
+        """Select task to complete."""
+        curr_date = str(datetime.now().date())
+        today_tasks = e.get_tasks_for_specific_date(curr_date)
+
+        if "task_success_msg" in st.session_state:
+            st.success(st.session_state.task_success_msg)
+            del st.session_state.task_success_msg
+
+        if today_tasks is None:
+            st.write("No available tasks for today.")
+        else:
+            with st.form("task_completion_form"):
+                st.subheader(f"📋 Tasks for {curr_date}")
+
+                # Dictionary to track which checkboxes get checked
+                task_checks = {}
+
+                for task in today_tasks:
+                    label = (
+                        f"**{task.name}** — "
+                        f"Weight: {task.get_weight()}/10 | "
+                        f"Difficulty: {task.get_difficulty()}/10"
+                    )
+                    # Render a checkbox for each task
+                    task_checks[task] = st.checkbox(label, key=f"chk_{task.name}")
+
+                # 2. Single submit button for the entire form
+                submitted = st.form_submit_button("Submit Completed Tasks", use_container_width=True)
+
+            # 3. Process the backend updates ONLY when the form is submitted
+            if submitted:
+                completed_count = 0
+                for task, is_checked in task_checks.items():
+                    if is_checked:
+                        e.complete_task(task)  # Updates object & backend JSON
+                        completed_count += 1
+
+                if completed_count > 0:
+                    st.session_state.flash_msg = f"✅ Successfully updated {completed_count} task(s)!"
+                else:
+                    st.session_state.flash_msg = "ℹ️ No tasks were checked."
+
+                st.rerun()
+
+            # Display persistent banner message after form rerun
+        if "flash_msg" in st.session_state:
+            st.success(st.session_state.flash_msg)
+            del st.session_state.flash_msg
+
 
 class ManagerView(EmployeeView):
     """The manager view."""
