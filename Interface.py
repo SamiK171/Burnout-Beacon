@@ -41,7 +41,7 @@ class EmployeeView(Interface):
     """The employee view."""
 
     def render(self):
-        self.render_top_bar(" 👔 Employee Portal: ")
+        self.render_top_bar(" 👔 EMPLOYEE PORTAL: ")
         col_left, col_mid, col_right = st.columns([1, 2, 1])
         # Left (Task & Mood History), # Mid: Analysis Report, # Right: Mood Rating, Employee Selection
 
@@ -125,6 +125,13 @@ class EmployeeView(Interface):
                 df = df.sort_values("Day").set_index("Day")
 
                 st.line_chart(df)
+
+                st.info("Weekly Context: ")
+                if st.button("💼 Check Week's Tasks", use_container_width=True):
+                    self._display_analysis_week_tasks(selected_employee, week_id)
+                if st.button("🧠 Check Week's Moods", use_container_width=True):
+                    self._display_analysis_week_moods(selected_employee, week_id)
+
 
     @st.dialog("📋 Tasks for Today")
     def _show_today_tasks_dialog(self, e: Employee):
@@ -218,6 +225,31 @@ class EmployeeView(Interface):
             st.success(st.session_state.flash_msg)
             del st.session_state.flash_msg
 
+    @st.dialog("💼 Check Week's Tasks")
+    def _display_analysis_week_tasks(self, e: Employee, w: str):
+        """Display the tasks for the week."""
+        week_tasks = e.get_tasks_for_specific_week(w)
+        if not week_tasks:
+            st.warning("No available tasks for this week.")
+        else:
+            for date in week_tasks:
+                st.write(f"Date: {date}")
+                for task in week_tasks[date]:
+                    st.write(f"Task Name: {task.name} |"
+                             f" Weight: {task.get_weight()}/10 |"
+                             f" Difficulty: {task.get_difficulty()}/10 |"
+                             f" Completed: {"Yes" if task.completed is True else "No"}")
+                st.write("-----------------")
+
+    @st.dialog("🧠 Check Week's Moods")
+    def _display_analysis_week_moods(self, e: Employee, w: str):
+        """Display the moods for the week."""
+        week_moods = e.get_moods_for_specific_week(w)
+        if not week_moods:
+            st.warning("No available moods for this week.")
+        else:
+            for date in week_moods:
+                st.write(f"Date: {date} | Mood: {week_moods[date]}")
 
 class ManagerView(EmployeeView):
     """The manager view."""

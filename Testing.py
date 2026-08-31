@@ -208,6 +208,17 @@ class Testing:
             assert a._get_task_completed_expected_ratio('2026-W21', jim, 'week') == [1.0, 0.50]
             assert a._get_task_completed_expected_ratio('2026-W22', jim, 'week') == [1.0, 0.0, 0.6666666666666666, 1.0, 0.3333333333333333]
 
+        def test_tasks_for_specific_week(self):
+            s = Storage('employee_info.json')
+            jim = s.get_employee('E1001')
+            assert jim.get_tasks_for_specific_week('2026-W22') == 3 # works (3 is a placeholder, lots of task objects)
+
+        def test_moods_for_specific_week(self):
+            s = Storage('employee_info.json')
+            jim = s.get_employee('E1001')
+            assert jim.get_moods_for_specific_week('2026-W22') == {'2026-05-25': 6, '2026-05-26': 3, '2026-05-27': 8,
+                                                                   '2026-05-28': 4, '2026-05-29': 9, '2026-05-30': 10}
+
     class TestAnalysisEnvironment:
         def test_mood_environment_weekly(self):
             s = Storage('employee_info.json')

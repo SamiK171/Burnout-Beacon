@@ -58,10 +58,43 @@ class Employee:
             return None # could be an exception later
 
     def get_tasks_for_specific_date(self, d: str) -> list[Task] | None:
+        """Returns the tasks of an employee on a specific date <d>"""
         if d in self._tasks:
             return self._tasks[d]
         else:
             return None
+
+    def get_tasks_for_specific_week(self, week: str) -> dict[str, list[Task]] | str:
+        """Returns the tasks of an employee on a specific week."""
+        week_tasks = {}
+
+        if self._tasks == {}:
+            return "No tasks available."
+        else:
+            for day_date in self._tasks:
+                iso_date = date.fromisoformat(day_date)
+                iso_year, iso_week, _ = iso_date.isocalendar()
+                formatted_week = f"{iso_year}-W{iso_week:02d}"
+
+                if formatted_week == week:
+                    week_tasks[day_date] = self._tasks[day_date]
+        return week_tasks
+
+    def get_moods_for_specific_week(self, week: str):
+        """Returns the moods of an employee on a specific week."""
+        week_moods = {}
+
+        if self._moods == {}:
+            return "No moods available."
+        else:
+            for day_date in self._moods:
+                iso_date = date.fromisoformat(day_date)
+                iso_year, iso_week, _ = iso_date.isocalendar()
+                formatted_week = f"{iso_year}-W{iso_week:02d}"
+
+                if formatted_week == week:
+                    week_moods[day_date] = self._moods[day_date]
+        return week_moods
 
     def rate_mood(self, mood_val: int, mood_date: str) -> str | None:
         """Rate mood for the day which is <mood_val>.
