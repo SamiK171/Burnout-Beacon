@@ -22,7 +22,7 @@ class Employee:
     role: str
     _moods: dict[str, int]
     _tasks: dict[str, list[Task]]
-    def __init__(self, name: str, role: str, employee_id: str) -> None:
+    def __init__(self, name: str, role: str, employee_id: str, file_name: str) -> None:
         """Instantiate an employee with given <name>, <role> and <employee_id>.
         Note: ONLY the Manager can do this.
         """
@@ -31,6 +31,7 @@ class Employee:
         self.employee_id = employee_id
         self._moods = {}
         self._tasks = {}
+        self._file_name = file_name
 
     def get_moods(self) -> dict[str, int]:
         """Get the daily moods of an employee."""
@@ -56,23 +57,68 @@ class Employee:
         else:
             return None # could be an exception later
 
-    def rate_mood(self, mood_val: int) -> None:
+    def get_tasks_for_specific_date(self, d: str) -> list[Task] | None:
+        """Returns the tasks of an employee on a specific date <d>"""
+        if d in self._tasks:
+            return self._tasks[d]
+        else:
+            return None
+
+    def get_tasks_for_specific_week(self, week: str) -> dict[str, list[Task]] | str:
+        """Returns the tasks of an employee on a specific week."""
+        week_tasks = {}
+
+        if self._tasks == {}:
+            return "No tasks available."
+        else:
+            for day_date in self._tasks:
+                iso_date = date.fromisoformat(day_date)
+                iso_year, iso_week, _ = iso_date.isocalendar()
+                formatted_week = f"{iso_year}-W{iso_week:02d}"
+
+                if formatted_week == week:
+                    week_tasks[day_date] = self._tasks[day_date]
+        return week_tasks
+
+    def get_moods_for_specific_week(self, week: str):
+        """Returns the moods of an employee on a specific week."""
+        week_moods = {}
+
+        if self._moods == {}:
+            return "No moods available."
+        else:
+            for day_date in self._moods:
+                iso_date = date.fromisoformat(day_date)
+                iso_year, iso_week, _ = iso_date.isocalendar()
+                formatted_week = f"{iso_year}-W{iso_week:02d}"
+
+                if formatted_week == week:
+                    week_moods[day_date] = self._moods[day_date]
+        return week_moods
+
+    def rate_mood(self, mood_val: int, mood_date: str) -> str | None:
         """Rate mood for the day which is <mood_val>.
 
         Precondition: 1 <= <mood_val> <= 10
         """
-        curr = str(date.today())
+        from Loader import Loader
         if 1 <= mood_val <= 10:
-            if curr in self._moods or curr not in self._tasks:
-                ... # RAISE Error or handle here. TBD.
+            if mood_date not in self._tasks: # indicates employee absence
+                return "Employee has no tasks for this day implying absence." # RAISE Error or handle here. TBD.
             else:
-                self._moods[curr] = mood_val
+                self._moods[mood_date] = mood_val
+                l = Loader(self._file_name)
+                l.mood_adder(mood_val, mood_date, self)
         else:
-            ... # raise some error/exception perhaps.
+            return "Insufficient requirements to rate mood."
+
 
     def complete_task(self, t: Task) -> None:
         """Complete a task <t>."""
+        from Loader import Loader
         t.completed = True
+        l = Loader(self._file_name)
+        l.task_completer(self, t)
 
     def __str__(self):
         """String representation of the Employee."""
@@ -100,37 +146,45 @@ class Manager(Employee):
     _moods: dict[date, int]
     _tasks: dict[date, dict[str, Task]]
 
-    def __init__(self, name: str, manager_id: str) -> None:
+    def __init__(self, name: str, manager_id: str, file_name: str) -> None:
         """Instantiate a manager with given <name> and <manager_id>.
 
         Note: ONLY the Manager can do this.
         """
-        super().__init__(name, 'Manager', manager_id)
+        super().__init__(name, 'Manager', manager_id, file_name)
         pass
 
-    def add_task(self, t: Task, e: Employee, d: str) -> None:
+    def add_task(self, t: Task, e: Employee) -> None:
         """Add a task <t> for the employee <e>. """
+        from Loader import Loader # avoids circular imports
         e_tasks = e.get_tasks()
         for dates in e_tasks:
             for task in e_tasks[dates]:
                 if task.name == t.name: # if the task already exists
                     return None # raise some error here later & finish method
-        e_tasks.setdefault(d, []).append(t) # otherwise add the task
-
+        e_tasks.setdefault(t.get_date(), []).append(t)
+        l = Loader(self._file_name)
+        l.task_adder(t, e)
 
     def remove_task(self, task_name: str, e: Employee, task_date: str) -> None:
         """Remove a task for the employee <e> by its <task_name>."""
+        from Loader import Loader
         e_tasks = e.get_tasks()
         for dates in e_tasks:
             if dates == task_date:
                 for task in e_tasks[dates]:
                     if task.name == task_name:
                         e_tasks[dates].remove(task)
+        l = Loader(self._file_name)
+        l.task_remover(task_name, e, task_date)
 
     def change_task(self, task_name: str, e: Employee,
                     task_date: str, name=None, weight=None, difficulty=None) -> None:
-        """Change a task <t> for the employee <e>."""
+        """Change a task <t> for the employee <e>.
+        Managers cannot change if a task is completed or not as only the employee can do that.
+        """
         # ROUGH IMPLEMENTATION (the case where date is changed has not been covered yet)
+        from Loader import Loader
         e_tasks = e.get_tasks()
         for dates in e_tasks:
             if dates == task_date:
@@ -142,7 +196,8 @@ class Manager(Employee):
                             task.set_weight(weight)
                         if difficulty is not None:
                             task.set_difficulty(difficulty)
-
+        l = Loader(self._file_name)
+        l.task_changer(task_name, e, task_date, name, weight, difficulty)
 
 if __name__ == '__main__':
     x = str(date.today())
