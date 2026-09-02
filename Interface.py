@@ -1,7 +1,7 @@
 import streamlit as st
 from Storage import Storage
 from Analysis import Analysis
-from Employee import Employee
+from Employee import Employee, Manager
 from Task import Task
 from Loader import Loader
 from datetime import datetime, timedelta
@@ -127,12 +127,65 @@ class EmployeeView(Interface):
 
                 st.line_chart(df)
 
-                st.info("Weekly Context: ")
+                state = self.analysis.develop_employee_state(selected_employee, week_id, 'week')
+
+                STATE_DESCRIPTIONS = {
+                    "Environment Conditions": {
+                        "LM": "😕 Low Mood Baseline: Overall weekly mood stayed in the lower range (1–4).",
+                        "MM": "🙂 Moderate Mood Baseline: Weekly mood remained stable in the mid-range (5–6).",
+                        "HM": "😄 High Mood Baseline: Overall weekly mood remained elevated in the top range (7–10).",
+                        "LC": "⬇️ Low Completion Rate: Task execution was low, staying below 50% on most days.",
+                        "MC": "⬅️➡️ Moderate Completion Rate: Task execution fluctuated around the 50% mark.",
+                        "HC": "⬆️ High Completion Rate: Task execution was strong, exceeding 50% on most days.",
+                        "HW": "🏋️ High Task Importance: Average workload weight remained elevated this week.",
+                        "MW": "⚖️ Moderate Task Importance: Workload weight stayed at a steady, balanced level.",
+                        "LW": "🍃 Low Task Importance: Assigned workload weight was minimal this week.",
+                        "HD": "🧠 High Task Difficulty: Assigned tasks carried high overall complexity this week.",
+                        "MD": "🧩 Moderate Task Difficulty: Task complexity remained at a manageable baseline.",
+                        "LD": "🌱 Low Task Difficulty: Assigned tasks carried minimal complexity this week.",
+                    },
+                    "Volatility Condition": {
+                        "HV": "⚡ High Volatility: Metric fluctuated significantly with large day-to-day shifts.",
+                        "MV": "〰️ Moderate Volatility: Metric fluctuated within a predictable, consistent range.",
+                        "LV": "🧘 Low Volatility: Metric remained highly stable with little to no daily variance.",
+                    },
+                    "Internal Direction Condition": {  # Mood & Task Completion
+                        "UP": "📈 Upward Trend: Metric improved steadily across the week, indicating positive momentum.",
+                        "FLAT": "➡️ Steady Baseline: Metric remained flat throughout the week with no major shifts.",
+                        "DOWN": "📉 Downward Trend: Metric declined steadily across the week, indicating negative drift.",
+                    },
+                    "External Direction Condition": {  # Task Weight & Difficulty
+                        "UP": "📈 Escalating Workload: Metric increased across the week, indicating rising workload pressure.",
+                        "FLAT": "➡️ Steady Workload: Metric remained flat throughout the week with no major shifts.",
+                        "DOWN": "📉 Easing Workload: Metric decreased across the week, indicating a release in workload pressure.",
+                    },
+                }
+
+                st.info("METRIC ANALYSIS: ")
+                if st.button("🌎View Metric Environments: "):
+                    st.info(f"MOOD: {STATE_DESCRIPTIONS["Environment Conditions"][state[0][0]]}")
+                    st.info(f"TASK COMPLETION: {STATE_DESCRIPTIONS["Environment Conditions"][state[1][0]]}")
+                    st.info(f"TASK WEIGHT: {STATE_DESCRIPTIONS["Environment Conditions"][state[2][0]]}")
+                    st.info(f"TASK DIFFICULTY: {STATE_DESCRIPTIONS["Environment Conditions"][state[3][0]]}")
+
+                if st.button("🔃View Metric Volatility: "):
+                    st.info(f"MOOD: {STATE_DESCRIPTIONS["Volatility Condition"][state[0][1]]}")
+                    st.info(f"TASK COMPLETION: {STATE_DESCRIPTIONS["Volatility Condition"][state[1][1]]}")
+                    st.info(f"TASK WEIGHT: {STATE_DESCRIPTIONS["Volatility Condition"][state[2][1]]}")
+                    st.info(f"TASK DIFFICULTY: {STATE_DESCRIPTIONS["Volatility Condition"][state[3][1]]}")
+
+                if st.button("📉📈View Metric Direction: "):
+                    st.info(f"MOOD: {STATE_DESCRIPTIONS["Internal Direction Condition"][state[0][2]]}")
+                    st.info(f"TASK COMPLETION: {STATE_DESCRIPTIONS["Internal Direction Condition"][state[1][2]]}")
+                    st.info(f"TASK WEIGHT: {STATE_DESCRIPTIONS["External Direction Condition"][state[2][2]]}")
+                    st.info(f"TASK DIFFICULTY: {STATE_DESCRIPTIONS["External Direction Condition"][state[3][2]]}")
+
+
+                st.info("📥WEEKLY CONTEXT: ")
                 if st.button("💼 Check Week's Tasks", use_container_width=True):
                     self._display_analysis_week_tasks(selected_employee, week_id)
                 if st.button("🧠 Check Week's Moods", use_container_width=True):
                     self._display_analysis_week_moods(selected_employee, week_id)
-
 
     @st.dialog("📋 Tasks for Today")
     def _show_today_tasks_dialog(self, e: Employee):
@@ -249,6 +302,11 @@ class EmployeeView(Interface):
 
 class ManagerView(EmployeeView):
     """The manager view."""
+
+    def __init__(self, filename: str):
+        super().__init__(filename)
+        self.manager = Manager(filename)
+
     def render(self):
         """Render the manager view."""
         self.render_top_bar(" 👨‍💼 MANAGEMENT PORTAL: ")
@@ -277,6 +335,10 @@ class ManagerView(EmployeeView):
             st.divider()
 
         with col_left:
+            if st.session_state.get("add_flash_msg"):
+                st.success(st.session_state.add_flash_msg)
+                st.session_state.add_flash_msg = None
+
             if st.button("✚ Add Task", width="stretch"):
                 self._add_task_for_employee(selected_employee)
             if st.button("⊖ Remove Task", width="stretch"):
@@ -315,20 +377,151 @@ class ManagerView(EmployeeView):
 
                 st.line_chart(df)
 
-                st.info("Weekly Context: ")
+                state = self.analysis.develop_employee_state(selected_employee, week_id, 'week')
+
+                STATE_DESCRIPTIONS = {
+                    "Environment Conditions": {
+                        "LM": "😕 Low Mood Baseline: Overall weekly mood stayed in the lower range (1–4).",
+                        "MM": "🙂 Moderate Mood Baseline: Weekly mood remained stable in the mid-range (5–6).",
+                        "HM": "😄 High Mood Baseline: Overall weekly mood remained elevated in the top range (7–10).",
+                        "LC": "⬇️ Low Completion Rate: Task execution was low, staying below 50% on most days.",
+                        "MC": "⬅️➡️ Moderate Completion Rate: Task execution fluctuated around the 50% mark.",
+                        "HC": "⬆️ High Completion Rate: Task execution was strong, exceeding 50% on most days.",
+                        "HW": "🏋️ High Task Importance: Average workload weight remained elevated this week.",
+                        "MW": "⚖️ Moderate Task Importance: Workload weight stayed at a steady, balanced level.",
+                        "LW": "🍃 Low Task Importance: Assigned workload weight was minimal this week.",
+                        "HD": "🧠 High Task Difficulty: Assigned tasks carried high overall complexity this week.",
+                        "MD": "🧩 Moderate Task Difficulty: Task complexity remained at a manageable baseline.",
+                        "LD": "🌱 Low Task Difficulty: Assigned tasks carried minimal complexity this week.",
+                    },
+                    "Volatility Condition": {
+                        "HV": "⚡ High Volatility: Metric fluctuated significantly with large day-to-day shifts.",
+                        "MV": "〰️ Moderate Volatility: Metric fluctuated within a predictable, consistent range.",
+                        "LV": "🧘 Low Volatility: Metric remained highly stable with little to no daily variance.",
+                    },
+                    "Internal Direction Condition": {  # Mood & Task Completion
+                        "UP": "📈 Upward Trend: Metric improved steadily across the week, indicating positive momentum.",
+                        "FLAT": "➡️ Steady Baseline: Metric remained flat throughout the week with no major shifts.",
+                        "DOWN": "📉 Downward Trend: Metric declined steadily across the week, indicating negative drift.",
+                    },
+                    "External Direction Condition": {  # Task Weight & Difficulty
+                        "UP": "📈 Escalating Workload: Metric increased across the week, indicating rising workload pressure.",
+                        "FLAT": "➡️ Steady Workload: Metric remained flat throughout the week with no major shifts.",
+                        "DOWN": "📉 Easing Workload: Metric decreased across the week, indicating a release in workload pressure.",
+                    },
+                }
+
+                st.info("METRIC ANALYSIS: ")
+                if st.button("🌎View Metric Environments: "):
+                    st.info(f"MOOD: {STATE_DESCRIPTIONS["Environment Conditions"][state[0][0]]}")
+                    st.info(f"TASK COMPLETION: {STATE_DESCRIPTIONS["Environment Conditions"][state[1][0]]}")
+                    st.info(f"TASK WEIGHT: {STATE_DESCRIPTIONS["Environment Conditions"][state[2][0]]}")
+                    st.info(f"TASK DIFFICULTY: {STATE_DESCRIPTIONS["Environment Conditions"][state[3][0]]}")
+
+                if st.button("🔃View Metric Volatility: "):
+                    st.info(f"MOOD: {STATE_DESCRIPTIONS["Volatility Condition"][state[0][1]]}")
+                    st.info(f"TASK COMPLETION: {STATE_DESCRIPTIONS["Volatility Condition"][state[1][1]]}")
+                    st.info(f"TASK WEIGHT: {STATE_DESCRIPTIONS["Volatility Condition"][state[2][1]]}")
+                    st.info(f"TASK DIFFICULTY: {STATE_DESCRIPTIONS["Volatility Condition"][state[3][1]]}")
+
+                if st.button("📉📈View Metric Direction: "):
+                    st.info(f"MOOD: {STATE_DESCRIPTIONS["Internal Direction Condition"][state[0][2]]}")
+                    st.info(f"TASK COMPLETION: {STATE_DESCRIPTIONS["Internal Direction Condition"][state[1][2]]}")
+                    st.info(f"TASK WEIGHT: {STATE_DESCRIPTIONS["External Direction Condition"][state[2][2]]}")
+                    st.info(f"TASK DIFFICULTY: {STATE_DESCRIPTIONS["External Direction Condition"][state[3][2]]}")
+
+
+                st.info("📥WEEKLY CONTEXT: ")
                 if st.button("💼 Check Week's Tasks", use_container_width=True):
                     self._display_analysis_week_tasks(selected_employee, week_id)
                 if st.button("🧠 Check Week's Moods", use_container_width=True):
                     self._display_analysis_week_moods(selected_employee, week_id)
 
+    @st.dialog("✚ Add Task")
     def _add_task_for_employee(self, e: Employee):
-        pass
 
+        with st.form("add_task_form", clear_on_submit=True):
+            chosen_name = st.text_input("Task Name: ")
+            chosen_weight = st.slider("Task Weight (1 - 10): ", 1, 10, 5)
+            chosen_difficulty = st.slider("Task Difficulty (1 - 10): ", 1, 10, 5)
+            chosen_id = st.text_input("Task ID: ", placeholder="T1") # starting from most important being 1, manager's can designate tasks by importance via numbers
+            chosen_date = str(datetime.now().date()) # tasks can only be added for current day
+            submitted = st.form_submit_button("Submit Task", use_container_width=True)
+
+            if submitted:
+                if not chosen_name.strip():
+                    st.error("🚨 Task name cannot be empty.")
+                else:
+                    new_task = Task(chosen_id, chosen_name, chosen_weight, chosen_difficulty, chosen_date, False)
+                    # ^ status is defaulted to False
+                    self.manager.add_task(new_task, e)
+                    st.session_state.add_flash_msg = f"Task: {new_task.get_name()} added successfully!"
+                    st.rerun()
+
+    @st.dialog("⊖ Remove Task")
     def _remove_task_for_employee(self, e: Employee):
-        pass
+        curr_date = str(datetime.now().date())
+        today_tasks = e.get_tasks_for_specific_date(curr_date)
 
+        if "task_success_msg" in st.session_state:
+            st.success(st.session_state.task_success_msg)
+            del st.session_state.task_success_msg
+
+        if today_tasks is None:
+            st.write("No available tasks to remove for today.")
+        else:
+            with st.form("task_completion_form"):
+                st.subheader(f"📋 Tasks for {curr_date}")
+
+                # Dictionary to track which checkboxes get checked
+                task_checks = {}
+
+                for task in today_tasks:
+                    label = (
+                        f"**{task.name}** — "
+                        f"Weight: {task.get_weight()}/10 | "
+                        f"Difficulty: {task.get_difficulty()}/10 | "
+                        f"Completed: {'Yes' if task.completed is True else 'No'}"
+                    )
+                    # Render a checkbox for each task
+                    task_checks[task] = st.checkbox(label, key=f"chk_{task.name}")
+
+                # 2. Single submit button for the entire form
+                submitted = st.form_submit_button("Remove Tasks", use_container_width=True)
+
+            # 3. Process the backend updates ONLY when the form is submitted
+            if submitted:
+                removed_count = 0
+                for task, is_checked in task_checks.items():
+                    if is_checked:
+                        self.manager.remove_task(task.get_name(), e, task.get_date())  # Updates object & backend JSON
+                        removed_count += 1
+
+                if removed_count > 0:
+                    st.session_state.flash_msg = f"✅ Successfully removed {removed_count} task(s)!"
+                else:
+                    st.session_state.flash_msg = "ℹ️ No tasks were removed."
+
+                st.rerun()
+
+            # Display persistent banner message after form rerun
+        if "flash_msg" in st.session_state:
+            st.success(st.session_state.flash_msg)
+            del st.session_state.flash_msg
+
+    @st.dialog("📝 Edit Task")
     def _edit_task_for_employee(self, e: Employee):
-        pass
+        curr_date = str(datetime.now().date())
+        today_tasks = e.get_tasks_for_specific_date(curr_date)
+
+        if "task_success_msg" in st.session_state:
+            st.success(st.session_state.task_success_msg)
+            del st.session_state.task_success_msg
+
+        if today_tasks is None:
+            st.write("No available tasks to change for today.")
+        else:
+            ...
 
 # SOFTWARE EXECUTION:
 

@@ -53,7 +53,7 @@ class Testing:
             The current day as of testing is '06-18-26'
             """
             s = Storage('employee_info.json')
-            m = Manager('Michael Scott', 'E0067', 'employee_info.json')
+            m = Manager('employee_info.json')
             jim = s.get_employee('E1001')
             t = Task('T1', 'Prank Dwight', 10, 10, str(date.today()), False)
             m.add_task(t, jim)
@@ -72,7 +72,7 @@ class Testing:
         def test_mood_rater_change(self):
             """Test the case where an employee updates their mood for a day."""
             s = Storage('employee_info.json')
-            m = Manager('Michael Scott', 'E0067', 'employee_info.json')
+            m = Manager('employee_info.json')
             jim = s.get_employee('E1001')
             t = Task('T1', 'Prank Dwight', 10, 10, str(date.today()), False)
             m.add_task(t, jim)
@@ -85,7 +85,7 @@ class Testing:
             """Test a manager adding a task for an employee."""
             s = Storage('employee_info.json')
             jim = s.get_employee('E1001')
-            m = Manager('Michael Scott', 'E0067', 'employee_info.json')
+            m = Manager('employee_info.json')
             t = Task('T1', 'Raid Utica', 10, 10, str(date.today()), False)
             m.add_task(t, jim)
             jim_tasks = jim.get_tasks()
@@ -95,7 +95,7 @@ class Testing:
             """Test a manager adding a duplicate task for an employee"""
             s = Storage('employee_info.json')
             jim = s.get_employee('E1001')
-            m = Manager('Michael Scott', 'E0067', 'employee_info.json')
+            m = Manager('employee_info.json')
             t1 = Task('T1', 'Raid Utica', 10, 10, str(date.today()), False)
             m.add_task(t1, jim)
             t2 = Task('T2', 'Raid Utica', 10, 10, str(date.today()), False)
@@ -109,7 +109,7 @@ class Testing:
             """Test a manager removing a task for an employee."""
             s = Storage('employee_info.json')
             jim = s.get_employee('E1001')
-            m = Manager('Michael Scott', 'E0067', 'employee_info.json')
+            m = Manager('employee_info.json')
             #pre-removal:
             assert jim.get_specific_task('2026-05-23', 'Contact Leads') is not None
             m.remove_task('Contact Leads', jim, '2026-05-23')
@@ -120,7 +120,7 @@ class Testing:
             """Test a manager changing a task for an employee."""
             s = Storage('employee_info.json')
             jim = s.get_employee('E1001')
-            m = Manager('Michael Scott', 'E0067', 'employee_info.json')
+            m = Manager('employee_info.json')
             task = jim.get_specific_task('2026-05-23', 'Client Outreach')
             # pre-change:
             assert task.name == 'Client Outreach'
@@ -466,7 +466,7 @@ class Testing:
         # Object Checker:
         s = Storage('employee_info.json')
         jim = s.get_employee('E1001')
-        m = Manager('Michael Scott', 'E0067', 'employee_info.json')
+        m = Manager('employee_info.json')
         t = Task('T3', 'Distribute Flyers', 6, 3, '2026-05-23', False)
         m.add_task(t, jim)
         jim_tasks = jim.get_tasks()
@@ -488,7 +488,7 @@ class Testing:
         # Object Checker:
         s = Storage('employee_info.json')
         jim = s.get_employee('E1001')
-        m = Manager('Michael Scott', 'E0067', 'employee_info.json')
+        m = Manager('employee_info.json')
         t = Task('T1', 'Star in Dunder Mifflin Commercial', 4, 1, '2026-05-31', False)
         m.add_task(t, jim)
         jim_tasks = jim.get_tasks()
@@ -510,7 +510,7 @@ class Testing:
         # Object Checker:
         s = Storage('employee_info.json')
         jim = s.get_employee('E1001')
-        m = Manager('Michael Scott', 'E0067', 'employee_info.json')
+        m = Manager('employee_info.json')
         # pre-removal:
         assert jim.get_specific_task('2026-05-30', 'Speak to Oscar about Accounting') is not None
         m.remove_task('Speak to Oscar about Accounting', jim, '2026-05-30')
@@ -536,7 +536,7 @@ class Testing:
         # Object Checker:
         s = Storage('employee_info.json')
         jim = s.get_employee('E1001')
-        m = Manager('Michael Scott', 'E0067', 'employee_info.json')
+        m = Manager('employee_info.json')
         task = jim.get_specific_task('2026-05-23', 'Configure Sales Pitch')
         # pre-change:
         assert task.name == 'Configure Sales Pitch'

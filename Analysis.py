@@ -45,10 +45,10 @@ class Analysis:
             },
             "Volatility Points": {
                 "HV": 10, "MV": 5 , "LV": 2},
-            "Internal Direction Points": {
+            "Internal Direction Points": { # Mood & Task Completion
                 "UP": 1, "FLAT": 4, "DOWN": 10
              },
-            "External Direction Points":
+            "External Direction Points": # Task Weight & Difficulty
                 {
                     "UP": 10, "FLAT": 4, "DOWN": 1
                 }

@@ -141,18 +141,8 @@ class Manager(Employee):
     - the name key of a manager's task must be defined as "TaskX" where X is an integer.
     - role = 'Manager'
     """
-    name: str
-    manager_id: str
-    _moods: dict[date, int]
-    _tasks: dict[date, dict[str, Task]]
-
-    def __init__(self, name: str, manager_id: str, file_name: str) -> None:
-        """Instantiate a manager with given <name> and <manager_id>.
-
-        Note: ONLY the Manager can do this.
-        """
-        super().__init__(name, 'Manager', manager_id, file_name)
-        pass
+    def __init__(self, file_name: str):
+        super().__init__(name='', role='Manager', employee_id='', file_name=file_name)
 
     def add_task(self, t: Task, e: Employee) -> None:
         """Add a task <t> for the employee <e>. """
