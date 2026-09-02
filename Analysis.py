@@ -466,15 +466,15 @@ class Analysis:
 
     def _get_score_category(self, score: float) -> str:
         if score <= 12.0:
-            return f"OPTIMAL BASELINE: Burnout Score {round(score, 2)}/40.0"
+            return f"SCORE CATEGORY - OPTIMAL BASELINE: Burnout Score {round(score, 2)}/40.0 \n "
         elif score <= 20.0:
-            return f"SUSTAINABLE OPERATIONS: Burnout Score {round(score, 2)}/40.0"
+            return f"SCORE CATEGORY - SUSTAINABLE OPERATIONS: Burnout Score {round(score, 2)}/40.0 \n "
         elif score <= 28.0:
-            return f"ELEVATED WORKLOAD STRAIN: Burnout Score {round(score, 2)}/40.0"
+            return f"SCORE CATEGORY - ELEVATED WORKLOAD STRAIN: Burnout Score {round(score, 2)}/40.0 \n "
         elif score <= 34.0:
-            return f"HIGH OPERATIONAL STRESS: Burnout Score {round(score, 2)}/40.0"
+            return f"SCORE CATEGORY - HIGH OPERATIONAL STRESS: Burnout Score {round(score, 2)}/40.0 \n "
         else:
-            return f"CRITICAL STRAIN THRESHOLD: Burnout Score {round(score, 2)}/40.0"
+            return f"SCORE CATEGORY - CRITICAL STRAIN THRESHOLD: Burnout Score {round(score, 2)}/40.0 \n "
 
     # Step 6: Case-Based Matching:
 
@@ -484,13 +484,13 @@ class Analysis:
         # CASE 1: High-Output Exhaustion:
         if 'LM' in state[0] and 'DOWN' in state[0]: # Low Mood & Downward Mood Direction
             if ('MC' in state[1] or 'GC' in state[1]) and 'UP' in state[1]: # Moderate/Good Completion & Upward Completion Direction
-                return ("HIGH-OUTPUT EXHAUSTION:"
+                return ("SPECIAL CASE - HIGH-OUTPUT EXHAUSTION: "
                         "High work output is consistent during collapsing emotional state.")
 
         # CASE 2: Clinical Depletion:
         if 'LM' in state[0] and 'DOWN' in state[0]: # Low & Downward Mood
             if 'LC' in state[1] and 'DOWN' in state[1]: # Low & Downward
-                return ("CLINICAL DEPLETION:"
+                return ("SPECIAL CASE - CLINICAL DEPLETION: "
                         "Workload effectiveness & productivity depletes as emotional state crumbles.")
 
         # CASE 3: Quiet Quitting / Loss of Interest:
@@ -498,7 +498,7 @@ class Analysis:
             if 'LC' in state[1] and 'LV' in state[1] and 'FLAT' in state[1]: # Consistent low completion
                 if 'LW' in state[2] or 'MW' in state[2]: # Low or moderate workload
                     if 'LD' in state[3] or 'MD' in state[3]: # Low or moderate difficulty
-                        return ("LOSS OF INTEREST:"
+                        return ("SPECIAL CASE - LOSS OF INTEREST: "
                                 "Consistent low emotional state with low work completion despite"
                                 "reasonable workload and difficulty indicates interest detachment from work.")
 
@@ -506,7 +506,7 @@ class Analysis:
         if 'DOWN' in state[1]: # Downward Completion
             if 'HW' in state[2] and 'UP' in state[2]: # Increasing and High Workload
                 if 'HD' in state[3] and 'UP' in state[3]: # Increasing and High Difficulty
-                    return ("STRUCTURAL OVERLOAD:"
+                    return ("SPECIAL CASE - STRUCTURAL OVERLOAD: "
                             "Task volume and complexity accelerating as output declines.")
 
         # CASE 5: Complexity Blockade:
@@ -514,7 +514,7 @@ class Analysis:
             if 'LC' in state[1] and 'DOWN' in state[1]: # Downwards and Low Completion
                 if 'LW' in state[2] or 'MW' in state[2]: # Low-to-Moderate Workload
                     if 'HD' in state[3] and 'UP' in state[3]: # Increasing and High Difficulty
-                        return ("COMPLEXITY BLOCKADE:"
+                        return ("SPECIAL CASE - COMPLEXITY BLOCKADE: "
                                 "Task volume remains stable but task complexity halts effective output."
                                 "")
 
@@ -523,12 +523,12 @@ class Analysis:
             if 'HC' in state[1] and ('UP' in state[1] or 'FLAT' in state[1]):
                 if 'MW' in state[2] or 'HW' in state[2]:
                     if 'MD' in state[3] or 'HD' in state[3]:
-                        return ("OPTIMAL HIGH-CAPACITY STATE:"
+                        return ("SPECIAL CASE - OPTIMAL HIGH-CAPACITY STATE: "
                                 "High-output under challenging work supported by high emotional resilience"
                                 "and low daily volatility.")
 
         # CASE 7: Fallback Case:
-        return "GENERAL OPERATIONAL LOAD: No acute operational patterns detected."
+        return "SPECIAL CASE - GENERAL OPERATIONAL LOAD: No acute operational patterns detected."
 
     # Step 7: Result Construction:
 
