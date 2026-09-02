@@ -334,6 +334,15 @@ class ManagerView(EmployeeView):
 
             st.divider()
 
+            if st.button("📋 Tasks for Today", width="stretch"):
+                self._show_today_tasks_dialog(selected_employee)
+
+            if st.button("📅 Task History", width="stretch"):
+                self._show_task_history_dialog(selected_employee)
+
+            if st.button("🎭 Mood History", width="stretch"):
+                self._show_mood_history_dialog(selected_employee)
+
         with col_left:
             if st.session_state.get("add_flash_msg"):
                 st.success(st.session_state.add_flash_msg)
