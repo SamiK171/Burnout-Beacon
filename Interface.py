@@ -339,6 +339,10 @@ class ManagerView(EmployeeView):
                 st.success(st.session_state.add_flash_msg)
                 st.session_state.add_flash_msg = None
 
+            if st.session_state.get("edit_flash_msg"):
+                st.success(st.session_state.edit_flash_msg)
+                st.session_state.edit_flash_msg = None
+
             if st.button("✚ Add Task", width="stretch"):
                 self._add_task_for_employee(selected_employee)
             if st.button("⊖ Remove Task", width="stretch"):
@@ -514,14 +518,26 @@ class ManagerView(EmployeeView):
         curr_date = str(datetime.now().date())
         today_tasks = e.get_tasks_for_specific_date(curr_date)
 
-        if "task_success_msg" in st.session_state:
-            st.success(st.session_state.task_success_msg)
-            del st.session_state.task_success_msg
-
         if today_tasks is None:
-            st.write("No available tasks to change for today.")
+            st.write("No available tasks to edit.")
         else:
-            ...
+            task_map = {t.get_name(): t for t in today_tasks}
+            selected_name = st.selectbox("Select Task to Edit:", list(task_map.keys()))
+            selected_task = task_map[selected_name]
+
+            with st.form("edit_task_form"):
+                new_name = st.text_input("Task Name:", value=selected_task.get_name(), key=f"name_{selected_task.get_name()}")
+                new_weight = st.text_input("Task Weight (1 - 10):", value=selected_task.get_weight(), key=f"weight_{selected_task.get_name()}")
+                new_difficulty = st.text_input("Task Difficulty (1 - 10):", value=selected_task.get_difficulty(), key=f"diff_{selected_task.get_name()}")
+                submitted =  st.form_submit_button("Save Changes", use_container_width=True)
+
+            if submitted:
+                if not new_name.strip():
+                    st.error('Task name cannot be empty.')
+                else:
+                    self.manager.change_task(selected_task.get_name(), e, selected_task.get_date(), new_name, new_weight, new_difficulty)
+                    st.session_state.edit_flash_msg = f"Updated **{new_name}**."
+                    st.rerun()
 
 # SOFTWARE EXECUTION:
 

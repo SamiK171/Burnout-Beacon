@@ -137,9 +137,9 @@
                     "tasks": [
                         {
                             "task_id": "T1",
-                            "name": "Repair Google API Services",
-                            "difficulty": 6,
-                            "weight": 7,
+                            "name": "Repair Apple API Services",
+                            "difficulty": "5",
+                            "weight": "2",
                             "completed": false
                         }
                     ]
