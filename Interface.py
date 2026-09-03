@@ -46,7 +46,7 @@ class EmployeeView(Interface):
 
             # Employee & Week Selection:
             employee_dict = self.storage.get_all_employees()
-            st.subheader("👤 Employee Selection")
+            st.subheader("👤 Employee Selection: ")
             selected_employee = st.selectbox("Select Yourself",
                          options=employee_dict.values(),
                          format_func=lambda emp: f"{emp.name} (ID: {emp.employee_id})")
@@ -77,7 +77,7 @@ class EmployeeView(Interface):
 
         # LEFT COLUMN BUTTONS:
         with col_left:
-            st.subheader("Quick Navigation")
+            st.subheader("Quick Navigation: ")
             if st.button("📋 Tasks for Today", width="stretch"):
                 self._show_today_tasks_dialog(selected_employee)
 
@@ -92,7 +92,7 @@ class EmployeeView(Interface):
 
         # MID COLUMN:
         with col_mid:
-            st.subheader("📊 Burnout Analysis Report")
+            st.subheader("📊 Burnout Analysis Report: ")
             report = self.analysis.deliver_report(selected_employee, week_id, 'week')
 
             if report == "Insufficient data for a report.":
@@ -442,7 +442,7 @@ class ManagerView(EmployeeView):
         with col_right:
         # Employee & Week Selection (manager can choose any employee they wish):
             employee_dict = self.storage.get_all_employees()
-            st.subheader("👤 Employee Selection")
+            st.subheader("👤 Employee Selection: ")
             selected_employee = st.selectbox("Select An Employee",
                                              options=employee_dict.values(),
                                              format_func=lambda emp: f"{emp.name} (ID: {emp.employee_id})")
@@ -470,6 +470,7 @@ class ManagerView(EmployeeView):
                 self._show_mood_history_dialog(selected_employee)
 
         with col_left:
+            st.subheader("🎛️ Task Management: ")
             if st.session_state.get("add_flash_msg"):
                 st.success(st.session_state.add_flash_msg)
                 st.session_state.add_flash_msg = None
@@ -486,7 +487,7 @@ class ManagerView(EmployeeView):
                 self._edit_task_for_employee(selected_employee)
 
         with col_mid:
-            st.subheader("📊 Burnout Analysis Report")
+            st.subheader("📊 Burnout Analysis Report: ")
             report = self.analysis.deliver_report(selected_employee, week_id, 'week')
 
             if report == "Insufficient data for a report.":
