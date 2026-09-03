@@ -35,6 +35,15 @@ class Interface:
 class EmployeeView(Interface):
     """The employee view."""
 
+    def format_week_range(self, week_num: int):
+        """Return week number with daterange (5-day workweek)."""
+        curr_year = datetime.now().year
+        week_start = datetime.fromisocalendar(int(curr_year), week_num, 1)
+        week_end = week_start + timedelta(days=4)  # Friday (Mon + 4 days)
+
+        # Formats as: "Week 1: Jan 05 – Jan 09"
+        return f"Week {week_num}: {week_start.strftime('%b %d')} – {week_end.strftime('%b %d')}"
+
     def render(self):
         self.render_top_bar(" 👔 EMPLOYEE PORTAL: ")
 
@@ -54,7 +63,7 @@ class EmployeeView(Interface):
             st.subheader("🕰️ Week Selection")
             selected_week = st.selectbox("Select A Week Number",
                                          options=range(1, 53),
-                                         format_func=lambda week: f"Week: {week}"
+                                         format_func=self.format_week_range
                                          )
             curr_year = str(datetime.now().year)
             week_id = f'{curr_year}-W{selected_week}'
@@ -307,7 +316,7 @@ class EmployeeView(Interface):
         """Show the task history of the employee."""
         selected_week = st.selectbox("Select A Week Number",
                                      options=range(1, 53),
-                                     format_func=lambda week: f"Week: {week}"
+                                     format_func=self.format_week_range
                                      )
         curr_year = str(datetime.now().year)
         week_id = f'{curr_year}-W{selected_week}'
@@ -318,7 +327,7 @@ class EmployeeView(Interface):
         """Show the mood history of the employee."""
         selected_week = st.selectbox("Select A Week Number",
                                      options=range(1, 53),
-                                     format_func=lambda week: f"Week: {week}"
+                                     format_func=self.format_week_range
                                      )
         curr_year = str(datetime.now().year)
         week_id = f'{curr_year}-W{selected_week}'
@@ -450,7 +459,7 @@ class ManagerView(EmployeeView):
             st.subheader("🕰️ Week Selection")
             selected_week = st.selectbox("Select A Week Number",
                                          options=range(1, 53),
-                                         format_func=lambda week: f"Week: {week}"
+                                         format_func=self.format_week_range
                                          )
             curr_year = str(datetime.now().year)
             week_id = f'{curr_year}-W{selected_week}'
