@@ -58,7 +58,7 @@ class EmployeeView(Interface):
             st.subheader("👤 Employee Selection: ")
             selected_employee = st.selectbox("Select Yourself",
                          options=employee_dict.values(),
-                         format_func=lambda emp: f"{emp.name} (ID: {emp.employee_id})")
+                         format_func=lambda emp: f"{emp.name}")
 
             st.subheader("🕰️ Week Selection")
             selected_week = st.selectbox("Select A Week Number",
@@ -70,6 +70,33 @@ class EmployeeView(Interface):
 
             st.write(f"Selected Employee: {selected_employee.name}")
             st.write(f"Selected Week: {selected_week}")
+
+            st.divider()
+
+            # Authentication:
+            auth_key = f"auth_verified_{selected_employee.employee_id}"
+
+            if not st.session_state.get(auth_key, False):
+                st.subheader("🔒 Verification Required")
+                input_id = st.text_input("Enter Employee ID:", type="password",
+                                         key=f"pin_{selected_employee.employee_id}")
+
+                if st.button("Unlock Portal", width="stretch"):
+                    if input_id.strip() == str(selected_employee.employee_id):
+                        st.session_state[auth_key] = True
+                        st.rerun()
+                    else:
+                        st.error("❌ Incorrect ID!")
+
+                # Stop execution here if not authenticated so col_left and col_mid don't show confidential data
+                st.info("👈 Please enter your Employee ID to view your tasks and reports.")
+                return
+
+            # Unlocked Session Actions
+            st.success(f"🔓 Logged in as **{selected_employee.name}**")
+            if st.button("🚪 Logout", width="stretch"):
+                st.session_state[auth_key] = False
+                st.rerun()
 
             st.divider()
 
