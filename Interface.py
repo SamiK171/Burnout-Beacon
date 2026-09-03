@@ -6,6 +6,8 @@ from Task import Task
 from Loader import Loader
 from datetime import datetime, timedelta
 import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
 
 class Interface:
     """The graphical user interface powered by Streamlit.
@@ -24,13 +26,6 @@ class Interface:
         col_title, col_mode = st.columns([3, 1])
         with col_title:
             st.title(title_text)
-        with col_mode:
-            st.session_state.user_role = st.radio(
-                "Mode",
-                ["Manager", "Employee"],
-                index=0 if st.session_state.get("user_role") == "Manager" else 1,
-                horizontal=True
-            )
         st.divider()
 
     def render(self):
@@ -109,23 +104,17 @@ class EmployeeView(Interface):
                 st.info(f"Timeframe: Start: {week_start.date()} | End: {week_end.date()}")
                 st.info(report)
 
-                mood_vals = self.analysis._get_mood_vals(week_id, selected_employee, 'week')
-                task_comp_vals = self.analysis._get_task_completed_expected_ratio(week_id, selected_employee, 'week')
-                scaled_completion = [comp * 10 for comp in task_comp_vals] # multiply comp ratios by 10 to match mood scaling
-                data = {
-                    "Day": ["Mon", "Tue", "Wed", "Thu", "Fri"],
-                    "Mood": mood_vals,
-                    "Task Completion": scaled_completion,
-                }
+                if st.button("🎭✅ View Mood vs. Task Completion Graph", width="stretch"):
+                    self._display_mood_vs_comp_graph(selected_employee, week_id)
 
-                df = pd.DataFrame(data)
-                day_order = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+                if st.button("🎭⚠️ View Mood vs. Task Difficulty Graph", width="stretch"):
+                    self._display_mood_vs_diff_graph(selected_employee, week_id)
 
-                df["Day"] = pd.Categorical(df["Day"], categories=day_order, ordered=True)
+                if st.button("✅⚠️ View Task Completion vs. Task Difficulty Graph", width="stretch"):
+                    self._display_comp_vs_diff_graph(selected_employee, week_id)
 
-                df = df.sort_values("Day").set_index("Day")
-
-                st.line_chart(df)
+                if st.button("✅⚖️ View Task Completion vs. Task Weight Graph", width="stretch"):
+                    self._display_comp_vs_weight_graph(selected_employee, week_id)
 
                 state = self.analysis.develop_employee_state(selected_employee, week_id, 'week')
 
@@ -161,7 +150,7 @@ class EmployeeView(Interface):
                     },
                 }
 
-                st.info("METRIC ANALYSIS: ")
+                st.info("💻 METRIC ANALYSIS: ")
                 if st.button("🌎View Metric Environments: "):
                     st.info(f"MOOD: {STATE_DESCRIPTIONS["Environment Conditions"][state[0][0]]}")
                     st.info(f"TASK COMPLETION: {STATE_DESCRIPTIONS["Environment Conditions"][state[1][0]]}")
@@ -186,6 +175,117 @@ class EmployeeView(Interface):
                     self._display_analysis_week_tasks(selected_employee, week_id)
                 if st.button("🧠 Check Week's Moods", use_container_width=True):
                     self._display_analysis_week_moods(selected_employee, week_id)
+
+    @st.dialog("🎭✅ View Mood vs. Task Completion Graph")
+    def _display_mood_vs_comp_graph(self, selected_employee: Employee, week_id: str):
+        mood_vals = self.analysis._get_mood_vals(week_id, selected_employee, 'week')
+        task_comp_vals = self.analysis._get_task_completed_expected_ratio(week_id, selected_employee, 'week')
+        scaled_completion = [comp * 10 for comp in task_comp_vals]  # multiply comp ratios by 10 to match mood scaling
+        data = {
+            "Day": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+            "Mood (1-10)": mood_vals,
+            "Task Completion (Scaled 1-10)": scaled_completion,
+        }
+
+        df = pd.DataFrame(data)
+        day_order = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+        df["Day"] = pd.Categorical(df["Day"], categories=day_order, ordered=True)
+        df = df.sort_values("Day").set_index("Day")
+
+        # 2. Executive Metrics for instant video context
+        avg_mood = sum(mood_vals) / len(mood_vals) if mood_vals else 0
+        avg_comp = (sum(task_comp_vals) / len(task_comp_vals) * 100) if task_comp_vals else 0
+
+        c1, c2 = st.columns(2)
+        c1.metric("Weekly Avg. Mood", f"{avg_mood:.1f} / 10")
+        c2.metric("Completion Rate", f"{avg_comp:.0f}%")
+
+        # 3. Clean line chart display
+        st.subheader("🗓️ Daily Mood vs. Task Completion Trend")
+        st.line_chart(df, color=["#FF4B4B", "#1F77B4"])
+
+    @st.dialog("🎭⚠️ View Mood vs. Task Difficulty Graph")
+    def _display_mood_vs_diff_graph(self, selected_employee: Employee, week_id: str):
+        mood_vals = self.analysis._get_mood_vals(week_id, selected_employee, 'week')
+        task_diff_vals = self.analysis.merge_diff(self.analysis._get_task_difficulties(week_id, selected_employee, 'week'))
+        data = {
+            "Day": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+            "Mood (1-10)": mood_vals,
+            "Task Difficulty (1-10)": task_diff_vals,
+        }
+
+        df = pd.DataFrame(data)
+        day_order = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+        df["Day"] = pd.Categorical(df["Day"], categories=day_order, ordered=True)
+        df = df.sort_values("Day").set_index("Day")
+
+        # 2. Executive Metrics for instant video context
+        avg_mood = sum(mood_vals) / len(mood_vals) if mood_vals else 0
+        avg_diff = (sum(task_diff_vals) / len(task_diff_vals)) if task_diff_vals else 0
+
+        c1, c2 = st.columns(2)
+        c1.metric("Weekly Avg. Mood", f"{avg_mood:.1f} / 10")
+        c2.metric("Weekly Avg. Task Difficulty", f"{avg_diff:.0f}/10")
+
+        # 3. Clean line chart display
+        st.subheader("🗓️ Daily Mood vs. Task Difficulty Trend")
+        st.line_chart(df, color=["#FF4B4B", "#1F77B4"])
+
+    @st.dialog("✅⚠️ View Task Completion vs. Task Difficulty Graph")
+    def _display_comp_vs_diff_graph(self, selected_employee: Employee, week_id: str):
+        task_comp_vals = self.analysis._get_task_completed_expected_ratio(week_id, selected_employee, 'week')
+        task_diff_vals = self.analysis.merge_diff(
+            self.analysis._get_task_difficulties(week_id, selected_employee, 'week'))
+        data = {
+            "Day": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+            "Task Completion (1-10 [Scaled])": task_comp_vals,
+            "Task Difficulty (1-10)": task_diff_vals,
+        }
+
+        df = pd.DataFrame(data)
+        day_order = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+        df["Day"] = pd.Categorical(df["Day"], categories=day_order, ordered=True)
+        df = df.sort_values("Day").set_index("Day")
+
+        # 2. Executive Metrics for instant video context
+        avg_comp = (sum(task_comp_vals) / len(task_comp_vals)) * 100 if task_comp_vals else 0
+        avg_diff = (sum(task_diff_vals) / len(task_diff_vals)) if task_diff_vals else 0
+
+        c1, c2 = st.columns(2)
+        c1.metric("Weekly Avg. Task Completion", f"{avg_comp:.1f}%")
+        c2.metric("Weekly Avg. Task Difficulty", f"{avg_diff:.0f}/10")
+
+        # 3. Clean line chart display
+        st.subheader("🗓️ Task Completion vs. Task Difficulty Trend")
+        st.line_chart(df, color=["#FF4B4B", "#1F77B4"])
+
+    @st.dialog("✅⚖️ View Task Completion vs. Task Weight Graph")
+    def _display_comp_vs_weight_graph(self, selected_employee: Employee, week_id: str):
+        task_comp_vals = self.analysis._get_task_completed_expected_ratio(week_id, selected_employee, 'week')
+        task_weight_vals = self.analysis.merge_diff(
+            self.analysis._get_task_weights(week_id, selected_employee, 'week'))
+        data = {
+            "Day": ["Mon", "Tue", "Wed", "Thu", "Fri"],
+            "Task Completion (1-10 [Scaled])": task_comp_vals,
+            "Task Weight (1-10)": task_weight_vals,
+        }
+
+        df = pd.DataFrame(data)
+        day_order = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+        df["Day"] = pd.Categorical(df["Day"], categories=day_order, ordered=True)
+        df = df.sort_values("Day").set_index("Day")
+
+        # 2. Executive Metrics for instant video context
+        avg_comp = (sum(task_comp_vals) / len(task_comp_vals)) * 100 if task_comp_vals else 0
+        avg_weight = (sum(task_weight_vals) / len(task_weight_vals)) if task_weight_vals else 0
+
+        c1, c2 = st.columns(2)
+        c1.metric("Weekly Avg. Task Completion", f"{avg_comp:.1f}%")
+        c2.metric("Weekly Avg. Task Weight", f"{avg_weight:.0f}/10")
+
+        # 3. Clean line chart display
+        st.subheader("🗓️ Task Completion vs. Task Weight Trend")
+        st.line_chart(df, color=["#FF4B4B", "#1F77B4"])
 
     @st.dialog("📋 Tasks for Today")
     def _show_today_tasks_dialog(self, e: Employee):
@@ -307,8 +407,34 @@ class ManagerView(EmployeeView):
         super().__init__(filename)
         self.manager = Manager(filename)
 
+    def _render_data_uploader(self):
+        """Manager-only helper to switch the global JSON dataset."""
+        st.sidebar.subheader("📂 Manager Controls: Data Source")
+
+        uploaded_file = st.sidebar.file_uploader(
+            "Upload JSON Dataset Formatted for Employee Analytics:",
+            type=["json"],
+            help="Select a JSON file to override active app data."
+        )
+
+        if uploaded_file is not None:
+            # Check if this is a newly uploaded file
+            if st.session_state.get("active_filename") != uploaded_file.name:
+                # 1. Save file to disk
+                save_path = f"temp_{uploaded_file.name}"
+                with open(save_path, "wb") as f:
+                    f.write(uploaded_file.getbuffer())
+
+                # 2. Update active filename in session state
+                st.session_state.active_filename = save_path
+                st.sidebar.success(f"Loaded: **{uploaded_file.name}**")
+
+                # 3. Rerun app to refresh views with new filename
+                st.rerun()
+
     def render(self):
         """Render the manager view."""
+        self._render_data_uploader()
         self.render_top_bar(" 👨‍💼 MANAGEMENT PORTAL: ")
 
         col_left, col_mid, col_right = st.columns([1, 2, 1])
@@ -372,23 +498,17 @@ class ManagerView(EmployeeView):
                 st.info(f"Timeframe: Start: {week_start.date()} | End: {week_end.date()}")
                 st.info(report)
 
-                mood_vals = self.analysis._get_mood_vals(week_id, selected_employee, 'week')
-                task_comp_vals = self.analysis._get_task_completed_expected_ratio(week_id, selected_employee, 'week')
-                scaled_completion = [comp * 10 for comp in task_comp_vals] # multiply comp ratios by 10 to match mood scaling
-                data = {
-                    "Day": ["Mon", "Tue", "Wed", "Thu", "Fri"],
-                    "Mood": mood_vals,
-                    "Task Completion": scaled_completion,
-                }
+                if st.button("🎭✅ View Mood vs. Task Completion Graph", width="stretch"):
+                    self._display_mood_vs_comp_graph(selected_employee, week_id)
 
-                df = pd.DataFrame(data)
-                day_order = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+                if st.button("🎭⚠️ View Mood vs. Task Difficulty Graph", width="stretch"):
+                    self._display_mood_vs_diff_graph(selected_employee, week_id)
 
-                df["Day"] = pd.Categorical(df["Day"], categories=day_order, ordered=True)
+                if st.button("✅⚠️ View Task Completion vs. Task Difficulty Graph", width="stretch"):
+                    self._display_comp_vs_diff_graph(selected_employee, week_id)
 
-                df = df.sort_values("Day").set_index("Day")
-
-                st.line_chart(df)
+                if st.button("✅⚖️ View Task Completion vs. Task Weight Graph", width="stretch"):
+                    self._display_comp_vs_weight_graph(selected_employee, week_id)
 
                 state = self.analysis.develop_employee_state(selected_employee, week_id, 'week')
 
@@ -424,7 +544,7 @@ class ManagerView(EmployeeView):
                     },
                 }
 
-                st.info("METRIC ANALYSIS: ")
+                st.info("💻 METRIC ANALYSIS: ")
                 if st.button("🌎View Metric Environments: "):
                     st.info(f"MOOD: {STATE_DESCRIPTIONS["Environment Conditions"][state[0][0]]}")
                     st.info(f"TASK COMPLETION: {STATE_DESCRIPTIONS["Environment Conditions"][state[1][0]]}")
@@ -550,8 +670,33 @@ class ManagerView(EmployeeView):
 
 # SOFTWARE EXECUTION:
 
-st.set_page_config(layout="wide", page_title="Burnout Beacon")
-#active_view1 = EmployeeView('10_employee_dataset.json')
-active_view2 = ManagerView('10_employee_dataset.json')
-#active_view1.render()
-active_view2.render()
+def load_default_data():
+    """Fallback function to load initial dataset from disk."""
+    # Replace with your actual default file path
+    import json
+    with open("employees_demo_dataset.json", "r") as f:
+        return json.load(f)
+
+def main():
+    st.set_page_config(layout="wide", page_title="Burnout Beacon")
+    # 1. Initialize default filename string in session state
+    if "active_filename" not in st.session_state:
+        st.session_state.active_filename = "employees_demo_dataset.json"
+
+    # 2. Grab the current filename string
+    current_filename = st.session_state.active_filename
+
+    # 3. View mode toggle
+    st.sidebar.title("Role Navigation: ")
+    view_mode = st.sidebar.radio("MODE:", ["Manager View", "Employee View"])
+    st.sidebar.markdown("---")
+
+    # 4. Instantiate views with the filename string
+    if view_mode == "Manager View":
+        ManagerView(current_filename).render()
+    else:
+        EmployeeView(current_filename).render()
+
+
+if __name__ == '__main__':
+    main()

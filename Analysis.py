@@ -545,7 +545,7 @@ class Analysis:
         return report
 
 if __name__ == '__main__':
-    s = Storage('10_employee_dataset.json')
+    s = Storage('employees_demo_dataset.json')
     a = Analysis()
     for employee_id in s.get_all_employees():
         employee = s.get_employee(employee_id)
