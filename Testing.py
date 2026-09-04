@@ -1,9 +1,7 @@
-import pytest
 import json
-from Employee import Employee, Manager
+from Employee import Manager
 from Task import Task
 from Analysis import Analysis
-from Loader import Loader
 from Storage import Storage
 from datetime import date
 
@@ -11,7 +9,7 @@ class Testing:
     """The testing suite.
 
      This class focuses on testcases ensuring implementation is meeting expectations.
-    Standard cases, edge cases, and property-based testing are all covered.
+    Standard cases and edge cases are covered.
 
     Components:
 
@@ -24,13 +22,9 @@ class Testing:
     - TestAnalysisEnvironment, TestAnalysisVolatility, TestAnalysisDirection, TestAnalysisCases
     and TestAnalysisResult: these classes all test the building blocks of the analysis and the final results
 
-    Section 2: The Analysis Focused Testing:
-    (Tested on a JSON file containing various employees with different data)
-
-    Section 3: JSON File/IO Testing
-
-    Section 4: Streamlit Frontend Testing
-
+    Section 2: JSON File/IO Testing
+      - Test the CRUD operations such as employee completing a task and a manager adding/removing/editing a task
+      properly updates the JSON database.
      """
 
     def test_all(self):
@@ -373,16 +367,7 @@ class Testing:
             assert a.deliver_report(jim, '2026-W22', 'week') == ('ELEVATED WORKLOAD STRAIN: Burnout Score 21.05/40.0\n'
  'GENERAL OPERATIONAL LOAD: No acute operational patterns detected.')
 
-# Section 2: The Analysis Focused
-    class TestEmployeeResults:
-        def test_report(self):
-            s = Storage('employees_demo_dataset.json')
-            a = Analysis()
-            carlos_mendez = s.get_employee('E1010')
-            assert a.deliver_report(carlos_mendez, '2026-W22', 'week') == ('OPTIMAL BASELINE: Burnout Score 10.8/40.0\n'
-                                                                 'GENERAL OPERATIONAL LOAD: No acute operational patterns detected.')
-
-# Section 3: JSON File/IO Testing
+# Section 2: JSON File/IO Testing
     class TestJSON:
         """
         WARNING: JSON Testing will change Analysis results.
@@ -462,7 +447,6 @@ class Testing:
                         assert employees['timeline'][day_date]['mood'] == 10
 
     def test_task_adder_existing_date(self):
-
         # Object Checker:
         s = Storage('employee_info.json')
         jim = s.get_employee('E1001')
@@ -561,7 +545,3 @@ class Testing:
                             if task['name'] == 'Contact Leads': # find the updated name
                                 assert task['weight'] == 8
                                 assert task['difficulty'] == 8
-
-# Section 4: Streamlit Frontend Testing
-class TestStreamlit:
-    pass
