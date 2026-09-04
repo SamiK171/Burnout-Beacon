@@ -1,11 +1,6 @@
 from Employee import Employee
-from Employee import Manager
-# from typing import Optional
-from Task import Task
 from datetime import date, timedelta
 from Storage import Storage # used for print statement testing
-import numpy as np
-import pandas as pd
 
 class Analysis:
     """The analysis engine.
@@ -31,7 +26,6 @@ class Analysis:
     """
 
     def __init__(self):
-
         # Risk Scoring Matrix:
         self._score_matrix = {
             "Global Weights": {
@@ -45,22 +39,16 @@ class Analysis:
             },
             "Volatility Points": {
                 "HV": 10, "MV": 5 , "LV": 2},
-            "Internal Direction Points": {
+            "Internal Direction Points": { # Mood & Task Completion
                 "UP": 1, "FLAT": 4, "DOWN": 10
              },
-            "External Direction Points":
+            "External Direction Points": # Task Weight & Difficulty
                 {
                     "UP": 10, "FLAT": 4, "DOWN": 1
                 }
         }
 
-        # Output Matrix's
-        self.week_matrix = {} # Weekly Timeframe (7 days or less)
-        self.month_matrix = {} # Monthly Timeframe (31 days or less)
-        self.year_matrix = {} # Yearly Timeframe (365 days or less)
-
     # Miscellaneous:
-
     def _to_iso_week(self, date_str: str) -> str:
         dt = date.fromisoformat(date_str).isocalendar()
         return f"{dt.year}-W{dt.week:02d}"
@@ -73,7 +61,6 @@ class Analysis:
         return start.isoformat(), end.isoformat()
 
     # Step 1: Extraction:
-
     def _get_mood_vals(self, period: str, e: Employee, period_type: str) -> list[int] | str:
         """Helper method for mood ROC calculation.
         Returns list of mood values for a specific week.
@@ -146,7 +133,6 @@ class Analysis:
         return merged
 
     # Step 2: Environment:
-
     def mood_environment(self, data: list[int]) -> str:
         """Calculates the mood environment of <data>.
 
@@ -257,7 +243,6 @@ class Analysis:
         return "LD" # Low Difficulty
 
     # Step 3: Volatility:
-
     def mas_calculator(self, data: list[int] | list[float]) -> float | str:
         """Calculate the mean absolute step of <data>."""
         if len(data) == 0 or type(data) is str:
@@ -334,7 +319,6 @@ class Analysis:
             return "LV"  # Low Volatility
 
     # Step 4: Direction:
-
     def window_average(self, data: list[int] | list[float]) -> float:
         """Calculate the window average of <data>.
 
@@ -388,7 +372,6 @@ class Analysis:
             return "DOWN"
 
     # Step 5: Score Calculation:
-
     def develop_employee_state(self, e: Employee, period: str, period_type: str) -> tuple:
         """Construct the employee state for employee <e>.
 
@@ -466,31 +449,30 @@ class Analysis:
 
     def _get_score_category(self, score: float) -> str:
         if score <= 12.0:
-            return f"OPTIMAL BASELINE: Burnout Score {round(score, 2)}/40.0"
+            return f"SCORE CATEGORY - OPTIMAL BASELINE: Burnout Score {round(score, 2)}/40.0 \n "
         elif score <= 20.0:
-            return f"SUSTAINABLE OPERATIONS: Burnout Score {round(score, 2)}/40.0"
+            return f"SCORE CATEGORY - SUSTAINABLE OPERATIONS: Burnout Score {round(score, 2)}/40.0 \n "
         elif score <= 28.0:
-            return f"ELEVATED WORKLOAD STRAIN: Burnout Score {round(score, 2)}/40.0"
+            return f"SCORE CATEGORY - ELEVATED WORKLOAD STRAIN: Burnout Score {round(score, 2)}/40.0 \n "
         elif score <= 34.0:
-            return f"HIGH OPERATIONAL STRESS: Burnout Score {round(score, 2)}/40.0"
+            return f"SCORE CATEGORY - HIGH OPERATIONAL STRESS: Burnout Score {round(score, 2)}/40.0 \n "
         else:
-            return f"CRITICAL STRAIN THRESHOLD: Burnout Score {round(score, 2)}/40.0"
+            return f"SCORE CATEGORY - CRITICAL STRAIN THRESHOLD: Burnout Score {round(score, 2)}/40.0 \n "
 
     # Step 6: Case-Based Matching:
-
     def evaluate_case(self, state: tuple) -> str:
         """Evaluate the weekly case matrix for the employee based on their <state>."""
 
         # CASE 1: High-Output Exhaustion:
         if 'LM' in state[0] and 'DOWN' in state[0]: # Low Mood & Downward Mood Direction
             if ('MC' in state[1] or 'GC' in state[1]) and 'UP' in state[1]: # Moderate/Good Completion & Upward Completion Direction
-                return ("HIGH-OUTPUT EXHAUSTION:"
+                return ("SPECIAL CASE - HIGH-OUTPUT EXHAUSTION: "
                         "High work output is consistent during collapsing emotional state.")
 
         # CASE 2: Clinical Depletion:
         if 'LM' in state[0] and 'DOWN' in state[0]: # Low & Downward Mood
             if 'LC' in state[1] and 'DOWN' in state[1]: # Low & Downward
-                return ("CLINICAL DEPLETION:"
+                return ("SPECIAL CASE - CLINICAL DEPLETION: "
                         "Workload effectiveness & productivity depletes as emotional state crumbles.")
 
         # CASE 3: Quiet Quitting / Loss of Interest:
@@ -498,7 +480,7 @@ class Analysis:
             if 'LC' in state[1] and 'LV' in state[1] and 'FLAT' in state[1]: # Consistent low completion
                 if 'LW' in state[2] or 'MW' in state[2]: # Low or moderate workload
                     if 'LD' in state[3] or 'MD' in state[3]: # Low or moderate difficulty
-                        return ("LOSS OF INTEREST:"
+                        return ("SPECIAL CASE - LOSS OF INTEREST: "
                                 "Consistent low emotional state with low work completion despite"
                                 "reasonable workload and difficulty indicates interest detachment from work.")
 
@@ -506,7 +488,7 @@ class Analysis:
         if 'DOWN' in state[1]: # Downward Completion
             if 'HW' in state[2] and 'UP' in state[2]: # Increasing and High Workload
                 if 'HD' in state[3] and 'UP' in state[3]: # Increasing and High Difficulty
-                    return ("STRUCTURAL OVERLOAD:"
+                    return ("SPECIAL CASE - STRUCTURAL OVERLOAD: "
                             "Task volume and complexity accelerating as output declines.")
 
         # CASE 5: Complexity Blockade:
@@ -514,7 +496,7 @@ class Analysis:
             if 'LC' in state[1] and 'DOWN' in state[1]: # Downwards and Low Completion
                 if 'LW' in state[2] or 'MW' in state[2]: # Low-to-Moderate Workload
                     if 'HD' in state[3] and 'UP' in state[3]: # Increasing and High Difficulty
-                        return ("COMPLEXITY BLOCKADE:"
+                        return ("SPECIAL CASE - COMPLEXITY BLOCKADE: "
                                 "Task volume remains stable but task complexity halts effective output."
                                 "")
 
@@ -523,15 +505,14 @@ class Analysis:
             if 'HC' in state[1] and ('UP' in state[1] or 'FLAT' in state[1]):
                 if 'MW' in state[2] or 'HW' in state[2]:
                     if 'MD' in state[3] or 'HD' in state[3]:
-                        return ("OPTIMAL HIGH-CAPACITY STATE:"
+                        return ("SPECIAL CASE - OPTIMAL HIGH-CAPACITY STATE: "
                                 "High-output under challenging work supported by high emotional resilience"
                                 "and low daily volatility.")
 
         # CASE 7: Fallback Case:
-        return "GENERAL OPERATIONAL LOAD: No acute operational patterns detected."
+        return "SPECIAL CASE - GENERAL OPERATIONAL LOAD: No acute operational patterns detected."
 
     # Step 7: Result Construction:
-
     def deliver_report(self, e: Employee, period: str, period_type: str) -> str:
         """Deliver the final burnout report for employee <e> based on their
         burnout score and case."""
@@ -545,7 +526,7 @@ class Analysis:
         return report
 
 if __name__ == '__main__':
-    s = Storage('10_employee_dataset.json')
+    s = Storage('employees_demo_dataset.json')
     a = Analysis()
     for employee_id in s.get_all_employees():
         employee = s.get_employee(employee_id)

@@ -1,6 +1,5 @@
 from Employee import Employee
 from Loader import Loader
-import json
 
 class Storage:
     """
@@ -34,23 +33,21 @@ class Storage:
                 return True
         return False
 
-    def add_employee(self, e: Employee) -> None:
+    def add_employee(self, e: Employee) -> None | str:
         """Add an employee to the storage."""
         if not self.contains_employee(e.employee_id):
             # only add if employee does not exist already
             self._employee_storage[e.employee_id] = e
-        # NOTE: raise exceptions later if employee id already exists!
+        else:
+            return "This employee already exists in the database!."
 
-    def remove_employee(self, e: Employee) -> None:
+    def remove_employee(self, e: Employee) -> None | str:
         """Remove an employee from the storage."""
         if self.contains_employee(e.employee_id):
             # remove if the employee exists in storage
             self._employee_storage.pop(e.employee_id)
-        # NOTE: raise exceptions later if employee id does not exist!
-
-    def save(self) -> None:
-        """Save new information to the JSON file."""
-        pass
+        else:
+            return "This employee is not in the database!"
 
 if __name__ == "__main__":
     loader = Loader('employee_info.json')

@@ -1,26 +1,5 @@
-from datetime import date
-
 class Task:
-    """A task.
-
-    === Public Attributes ===
-    name: the name of the task.
-    completed: the status of the task
-
-    === Private Attributes ===
-    _weight: the weight of the task.
-    _difficulty: the difficulty of the task.
-
-    === Representation Invariants ===
-    - 0 <= _weight <= 10
-    - 0 <= _difficulty <= 10
-    - _date can only be datetime.today() or a date after datetime.today()
-    """
-    name: str
-    completed: bool
-    _weight: int
-    _difficulty: int
-    _date: str
+    """A task."""
     def __init__(self, t_id: str, name: str, weight: int, difficulty: int, t_date: str, completed: bool) -> None:
         """Instantiate a task.
 
@@ -28,7 +7,6 @@ class Task:
         Note: When tasks are created by the Loader, they may be instantiated as true if that
         is what the JSON file says. Otherwise, when created by the Manager, their "completed"
         value should default to False.
-        Precondition: 0 <= weight <= 10, 0 <= difficulty <= 10
         """
         self.t_id = t_id
         self.name = name
@@ -51,8 +29,6 @@ class Task:
 
     def set_weight(self, weight: int):
         """Set the weight of the task to <weight>.
-
-        Precondition: 0 <= weight <= 10
         """
         self._weight = weight
 
@@ -62,8 +38,6 @@ class Task:
 
     def set_difficulty(self, difficulty: int):
         """Set the difficulty of the task to <difficulty>.
-
-        Precondition: 0 <= difficulty <= 10
         """
         self._difficulty = difficulty
 

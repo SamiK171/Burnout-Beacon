@@ -2,29 +2,12 @@ from datetime import date
 from Task import Task
 
 class Employee:
-    """An employee.
-
-    === Public Attributes ===
-    name: the name of the Employee
-    employee_id: the workplace ID of the Employees
-    role: the role of the Employee
-
-    === Private Attributes ===
-    _moods: the daily rated moods of an employee
-    _tasks: the daily tasks of an employee
-
-    === Representation Invariants ===
-    - the mood value of an employee must be between 1 and 10.
-    - the name key of an employee's task must be defined as "TaskX" where X is an integer.
-    """
-    name: str
-    employee_id: str
-    role: str
+    """An employee."""
     _moods: dict[str, int]
     _tasks: dict[str, list[Task]]
     def __init__(self, name: str, role: str, employee_id: str, file_name: str) -> None:
         """Instantiate an employee with given <name>, <role> and <employee_id>.
-        Note: ONLY the Manager can do this.
+        Note: ONLY the Loader can do this when reading in the JSON database.
         """
         self.name = name
         self.role = role
@@ -46,7 +29,7 @@ class Employee:
         if d in self._moods:
             return self._moods[d]
         else:
-            return None # could be an exception later
+            return None
 
     def get_specific_task(self, d: str, name: str) -> Task | None:
         """Returns the task of an employee on a specific date <d>"""
@@ -55,7 +38,7 @@ class Employee:
                 if task.name == name:
                     return task
         else:
-            return None # could be an exception later
+            return None
 
     def get_tasks_for_specific_date(self, d: str) -> list[Task] | None:
         """Returns the tasks of an employee on a specific date <d>"""
@@ -97,10 +80,7 @@ class Employee:
         return week_moods
 
     def rate_mood(self, mood_val: int, mood_date: str) -> str | None:
-        """Rate mood for the day which is <mood_val>.
-
-        Precondition: 1 <= <mood_val> <= 10
-        """
+        """Rate mood for the day which is <mood_val>."""
         from Loader import Loader
         if 1 <= mood_val <= 10:
             if mood_date not in self._tasks: # indicates employee absence
@@ -111,7 +91,6 @@ class Employee:
                 l.mood_adder(mood_val, mood_date, self)
         else:
             return "Insufficient requirements to rate mood."
-
 
     def complete_task(self, t: Task) -> None:
         """Complete a task <t>."""
@@ -127,32 +106,11 @@ class Employee:
 class Manager(Employee):
     """A manager.
 
-    === Public Attributes ===
-    name: the name of the Manager
-    manager_id: the workplace ID of the Manager
-    role: the role of the Manager
-
-    === Private Attributes ===
-    _moods: the daily rated moods of a manager
-    _tasks: the daily tasks of a manager
-
-    === Representation Invariants ===
-    - the mood value of a manager must be between 0 and 10.
-    - the name key of a manager's task must be defined as "TaskX" where X is an integer.
-    - role = 'Manager'
+    This class provides CRUD functionalities for the manager when they are
+    in management mode.
     """
-    name: str
-    manager_id: str
-    _moods: dict[date, int]
-    _tasks: dict[date, dict[str, Task]]
-
-    def __init__(self, name: str, manager_id: str, file_name: str) -> None:
-        """Instantiate a manager with given <name> and <manager_id>.
-
-        Note: ONLY the Manager can do this.
-        """
-        super().__init__(name, 'Manager', manager_id, file_name)
-        pass
+    def __init__(self, file_name: str):
+        super().__init__(name='', role='Manager', employee_id='', file_name=file_name)
 
     def add_task(self, t: Task, e: Employee) -> None:
         """Add a task <t> for the employee <e>. """
@@ -183,7 +141,6 @@ class Manager(Employee):
         """Change a task <t> for the employee <e>.
         Managers cannot change if a task is completed or not as only the employee can do that.
         """
-        # ROUGH IMPLEMENTATION (the case where date is changed has not been covered yet)
         from Loader import Loader
         e_tasks = e.get_tasks()
         for dates in e_tasks:
