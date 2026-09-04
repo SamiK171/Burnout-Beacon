@@ -6,6 +6,7 @@ from Task import Task
 from Loader import Loader
 from datetime import datetime, timedelta
 import pandas as pd
+from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -23,9 +24,16 @@ class Interface:
         """Header with mode switcher on the top right.
         Changes from Manager View to Employee View & vice versa.
         """
-        col_title, col_mode = st.columns([3, 1])
-        with col_title:
-            st.title(title_text)
+        BASE_DIR = Path(__file__).resolve().parent
+        LOGO_PATH = BASE_DIR / "assets" / "Burnout Beacon Logo.svg"
+
+        col_logo, col_title = st.columns([2, 5])
+
+        with col_logo:
+            if LOGO_PATH.exists():
+                st.image(str(LOGO_PATH), use_container_width=True)
+
+        st.title(title_text)
         st.divider()
 
     def render(self):
