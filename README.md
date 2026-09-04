@@ -8,7 +8,7 @@ Built with an **Object-Oriented Programming (OOP)** architecture in Python, the 
 
 ## 🌟 Key Features:
 
-* **📊 Time-Series Metric Evaluation:** Analyzes multi-week employee datasets across three core dimensions:
+* **📊 Time-Series Metric Evaluation:** Analyzes weekly employee datasets across three core dimensions:
   * **Environment Baseline:** Categorizes baseline mood (LM/MM/HM), task completion (LC/MC/HC), and workload pressure (HW/HD).
   * **Volatility Tracking:** Measures metric stability (HV/MV/LV) to spot abrupt shifts in employee well-being.
   * **Directional Trends:** Tracks upward, flat, or downward trajectory (UP/FLAT/DOWN) in completion vs. difficulty.
