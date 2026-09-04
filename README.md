@@ -48,3 +48,6 @@ The codebase enforces strict separation of concerns through an OOP architecture 
 
 ### 📊 JSON Database:
 The JSON database (demonstrated in example files such as employee_info.json and employees_demo_database.json) must follow a strict structure in order for the project to perform its analysis on it. The required structure can be found within the example files.
+
+### 🗓️ Development Timeline:
+May 6, 2026 - September 3, 2026
