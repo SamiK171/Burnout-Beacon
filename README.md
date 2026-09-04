@@ -31,11 +31,11 @@ Built with an **Object-Oriented Programming (OOP)** architecture in Python, the 
 ### 💻 Object-Oriented Design (OOP):
 The codebase enforces strict separation of concerns through an OOP architecture of classes and leverages composition, inheritance & abstraction:
 
-* **Employee**: The employee class represents an employee within the system, storing key information such as name, id, and most importantly, the employee's mood and history over time. This class also covers the task completion feature.
+* **Employee**: The employee class represents an employee within the system, storing key information such as name, ID, and most importantly, the employee's mood and history over time. This class also covers the task completion feature.
 
 * **Manager**: The manager class represents the abilities of a manager within the system such as adding, removing and editing the tasks of other employees.
 
-* **Task**: The task class represents a task with qualities such as its id, name, weight, difficulty, and completion status.
+* **Task**: The task class represents a task with qualities such as ID, name, weight, difficulty, and completion status.
 
 * **Storage**: The storage class acts as a container which encompasses all employees and their catalogue of information that are stored within the JSON database as proper objects.
 
