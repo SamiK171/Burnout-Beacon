@@ -1,6 +1,6 @@
 # 🔋🪫 Burnout Beacon
 
-**Burnout Beacon** is a technical, interactive workforce diagnostic dashboard designed to monitor employee sentiment, workload difficulty, and completion metrics to identify burnout risks before they impact teams. 
+**Burnout Beacon** is a technical, interactive business workforce diagnostic dashboard designed to monitor employee sentiment, workload difficulty, and completion metrics to identify burnout risks before they impact teams. 
 
 Built with an **Object-Oriented Programming (OOP)** architecture in Python, the application evaluates time-series employee metrics—tracking trend direction, volatility, and baseline environmental shifts—to deliver actionable diagnostic insights.
 
