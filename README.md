@@ -15,6 +15,7 @@ Built with an **Object-Oriented Programming (OOP)** architecture in Python, the 
 * **🔒 Role-Gated Authentication:** Lightweight per-employee ID verification gated via `st.session_state` to secure sensitive diagnostic reports during multi-user profile switching.
 * **📈 Interactive Visualizations:** Dynamic line chart comparisons mapping Mood vs. Completion, Completion vs. Difficulty, and Task Weight over custom week ranges.
 * **🎭 Real-Time Mood Logging:** Daily sentiment submission form with instant feedback and historical trend logging.
+* **⏱️ Temporal Data Integrity:** Restricts real-time task management (add, edit, remove, complete) and mood logging strictly to the current day, preventing retroactive data alteration and safeguarding historical time-series accuracy.
 * **📁 Portable Local Persistence:** Engineered file storage layer reading/writing JSON datasets cleanly without external database overhead.
 
 ---
