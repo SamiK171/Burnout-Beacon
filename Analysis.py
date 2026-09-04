@@ -1,6 +1,5 @@
 from Employee import Employee
 from datetime import date, timedelta
-from Storage import Storage # used for print statement testing
 
 class Analysis:
     """The analysis engine.
@@ -524,12 +523,3 @@ class Analysis:
         if '0.0/40.0' in report: # impossible case. only happens when data is insufficient.
             return "Insufficient data for a report."
         return report
-
-if __name__ == '__main__':
-    s = Storage('employees_demo_dataset.json')
-    a = Analysis()
-    for employee_id in s.get_all_employees():
-        employee = s.get_employee(employee_id)
-        print(employee.name)
-        print(a.deliver_report(employee, '2026-W22', 'week'))
-        print("-------")

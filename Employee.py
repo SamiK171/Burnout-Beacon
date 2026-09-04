@@ -155,7 +155,3 @@ class Manager(Employee):
                             task.set_difficulty(difficulty)
         l = Loader(self._file_name)
         l.task_changer(task_name, e, task_date, name, weight, difficulty)
-
-if __name__ == '__main__':
-    x = str(date.today())
-    print(x == '2026-06-18')

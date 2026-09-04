@@ -48,16 +48,3 @@ class Storage:
             self._employee_storage.pop(e.employee_id)
         else:
             return "This employee is not in the database!"
-
-if __name__ == "__main__":
-    loader = Loader('employee_info.json')
-    s = Storage()
-    jim = s.get_employee('E1001')
-    print("Jim's Profile:", jim)
-    print("Jim's Moods: ", jim.get_moods())
-    print("Jim's Tasks: ", jim.get_tasks())
-    jim_tasks = jim.get_tasks()
-    jim_list = jim_tasks['2026-05-23']
-    print("Before Completion, May 23, 2026's Task 1:", jim_list[0])
-    #jim.complete_task(jim_list[0])
-    #print("After Completion, May 23, 2026's Task 1:", jim_list[0])
