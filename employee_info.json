@@ -209,11 +209,6 @@
                     "mood": 4
                 }
             }
-        },
-        {
-            "employee_id": "E1002",
-            "name": "Dwight Schrute",
-            "role": "Assistant Regional Manager"
         }
     ]
 }
