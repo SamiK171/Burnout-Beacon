@@ -1,4 +1,4 @@
-# 🕯️ Burnout Beacon
+# 🔋🪫 Burnout Beacon
 
 **Burnout Beacon** is a technical, interactive workforce diagnostic dashboard designed to monitor employee sentiment, workload difficulty, and completion metrics to identify burnout risks before they impact teams. 
 
@@ -6,7 +6,7 @@ Built with an **Object-Oriented Programming (OOP)** architecture in Python, the 
 
 ---
 
-## 🌟 Key Features
+## 🌟 Key Features:
 
 * **📊 Time-Series Metric Evaluation:** Analyzes multi-week employee datasets across three core dimensions:
   * **Environment Baseline:** Categorizes baseline mood (LM/MM/HM), task completion (LC/MC/HC), and workload pressure (HW/HD).
@@ -19,16 +19,16 @@ Built with an **Object-Oriented Programming (OOP)** architecture in Python, the 
 
 ---
 
-## 🏗️ System Architecture & Tech Stack
+## 🏗️ System Architecture & Tech Stack:
 
-### Tech Stack:
+### 🐍 Tech Stack:
 * **Language:** Python 3.10+
 * **Frontend UI:** Streamlit
 * **Data Processing & Analytics:** Custom Python Time-Series Logic, `datetime`
 * **Data Persistence:** JSON via `pathlib`
 * **Branding & Assets:** SVG Integration
 
-### Object-Oriented Design (OOP)
+### 💻 Object-Oriented Design (OOP):
 The codebase enforces strict separation of concerns through an OOP architecture of classes and leverages composition, inheritance & abstraction:
 
 * **Employee**: The employee class represents an employee within the system, storing key information such as name, id, and most importantly, the employee's mood and history over time. This class also covers the task completion feature.
