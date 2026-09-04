@@ -43,4 +43,7 @@ The codebase enforces strict separation of concerns through an OOP architecture 
 
 * **Analysis**: The analysis class is where the bulk of the project happens, as all statistical calculations, score generation and case-matching occur in this class and are constructed together to develop an employee's burnout report.
 
-* **Interface**: The interface class deals with the frontend of the project and is developed in Streamlit. The EmployeeView and ManagerView subclasses revolve around the distinct interfaces of both roles respectively. 
+* **Interface**: The interface class deals with the frontend of the project and is developed in Streamlit. The EmployeeView and ManagerView subclasses revolve around the distinct interfaces of both roles respectively.
+
+### 📊 JSON Database:
+The JSON database (demonstrated in example files such as employee_info.json and employees_demo_database) must follow a strict structure in order for the project to perform its analysis on it. The required structure can be found within the example files.
