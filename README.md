@@ -25,7 +25,7 @@ Built with an **Object-Oriented Programming (OOP)** architecture in Python, the 
 * **Language:** Python 3.10+
 * **Frontend UI:** Streamlit
 * **Data Processing & Analytics:** Custom Python Time-Series Logic, `datetime`
-* **Data Persistence:** JSON via `pathlib`
+* **Data Persistence:** JSON 
 * **Branding & Assets:** SVG Integration
 
 ### 💻 Object-Oriented Design (OOP):
